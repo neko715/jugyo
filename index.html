@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>時間割トラッカー</title>
+    <title>学校の時間割トラッカー</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -111,6 +111,13 @@
             return new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
         }
 
+        function formatTime(date) {
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+            return `${hours}:${minutes}:${seconds}`;
+        }
+
         function getStatus(schedule, isWednesday) {
             for (let i = 0; i < schedule.length; i++) {
                 const period = schedule[i];
@@ -119,9 +126,9 @@
                 const start = parseTime(period.start);
                 const end = parseTime(period.end);
                 if (now >= start && now <= end) {
-                    return `${period.period}中です。あと${Math.round((end - now) / 60000)}分で終了します。`;
+                    return `${period.period}中です。あと${Math.round((end - now) / 60000)}分で終了します（${formatTime(end)}に終了）。`;
                 } else if (now < start) {
-                    return `${period.period}はあと${Math.round((start - now) / 60000)}分で開始します。`;
+                    return `${period.period}はあと${Math.round((start - now) / 60000)}分で開始します（${formatTime(start)}に開始）。`;
                 }
             }
             return '現在、授業時間外です。';
