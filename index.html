@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>時間割トラッカー</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .tab {
+            display: flex;
+            cursor: pointer;
+        }
+        .tab button {
+            padding: 10px;
+            border: 1px solid #ccc;
+            background: #f9f9f9;
+            margin-right: 5px;
+            transition: background 0.3s ease;
+        }
+        .tab button.active {
+            background: #ddd;
+            font-weight: bold;
+        }
+        .content {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            width: 100%;
+            transform: translateX(0);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .content.active {
+            visibility: visible;
+            opacity: 1;
+            position: relative;
+        }
+        .slide-right {
+            transform: translateX(50px);
+        }
+        .slide-left {
+            transform: translateX(-50px);
+        }
+        .content.active.slide-right,
+        .content.active.slide-left {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body>
+    <h1>学校の時間割トラッカー</h1>
+    <div class="tab">
+        <button class="tab-button" data-target="normal">通常日課</button>
+        <button class="tab-button" data-target="short-no-lunch">短縮４時間日課（給食なし）</button>
+        <button class="tab-button" data-target="short-with-lunch">短縮４時間日課（給食あり）</button>
+    </div>
+
+    <div id="normal" class="content">
+        <h2>通常日課</h2>
+        <p id="normal-status"></p>
+    </div>
+
+    <div id="short-no-lunch" class="content">
+        <h2>短縮４時間日課（給食なし）</h2>
+        <p id="short-no-lunch-status"></p>
+    </div>
+
+    <div id="short-with-lunch" class="content">
+        <h2>短縮４時間日課（給食あり）</h2>
+        <p id="short-with-lunch-status"></p>
+    </div>
+
+    <script>
+        const schedule = {
+            normal: [
+                { period: '朝の会', start: '8:10', end: '8:20' },
+                { period: 'スキル・読書', start: '8:20', end: '8:35' },
+                { period: '1枚時', start: '8:40', end: '9:25' },
+                { period: '2枚時', start: '9:30', end: '10:15' },
+                { period: '3枚時', start: '10:20', end: '11:05' },
+                { period: '4枚時', start: '11:10', end: '11:55' },
+                { period: '昼食', start: '12:00', end: '12:50' },
+                { period: 'ふれあいタイム', start: '12:55', end: '13:35', wednesday: true },
+                { period: '5枚時', start: '13:40', end: '14:25' },
+                { period: '6枚時', start: '14:30', end: '15:15' },
+            ],
+            shortNoLunch: [
+                { period: '朝の会', start: '8:10', end: '8:20' },
+                { period: '1枚時', start: '8:25', end: '9:10' },
+                { period: '2枚時', start: '9:15', end: '10:00' },
+                { period: '3枚時', start: '10:05', end: '10:50' },
+                { period: '4枚時', start: '10:55', end: '11:40' },
+            ],
+            shortWithLunch: [
+                { period: '朝の会', start: '8:10', end: '8:20' },
+                { period: 'スキル・読書', start: '8:20', end: '8:35' },
+                { period: '1枚時', start: '8:40', end: '9:25' },
+                { period: '2枚時', start: '9:30', end: '10:15' },
+                { period: '3枚時', start: '10:20', end: '11:05' },
+                { period: '4枚時', start: '11:10', end: '11:55' },
+                { period: '昼食', start: '12:00', end: '12:50' },
+            ],
+        };
+
+        const now = new Date();
+        const dayOfWeek = now.getDay(); // 0 = 日曜日, 1 = 月曜日, ..., 6 = 土曜日
+
+        function parseTime(time) {
+            const [hours, minutes] = time.split(':').map(Number);
+            return new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
+        }
+
+        function getStatus(schedule, isWednesday) {
+            for (let i = 0; i < schedule.length; i++) {
+                const period = schedule[i];
+                if (period.wednesday && !isWednesday) continue;
+
+                const start = parseTime(period.start);
+                const end = parseTime(period.end);
+                if (now >= start && now <= end) {
+                    return `${period.period}中です。あと${Math.round((end - now) / 60000)}分で終了します。`;
+                } else if (now < start) {
+                    return `${period.period}はあと${Math.round((start - now) / 60000)}分で開始します。`;
+                }
+            }
+            return '現在、授業時間外です。';
+        }
+
+        let currentTab = null;
+
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                document.querySelectorAll('.content').forEach(content => {
+                    content.classList.remove('active', 'slide-left', 'slide-right');
+                });
+
+                const targetContent = document.getElementById(button.dataset.target);
+
+                if (currentTab) {
+                    const direction = currentTab.compareDocumentPosition(targetContent) & Node.DOCUMENT_POSITION_FOLLOWING ? 'slide-right' : 'slide-left';
+                    targetContent.classList.add(direction);
+                }
+
+                targetContent.classList.add('active');
+                currentTab = targetContent;
+            });
+        });
+
+        document.getElementById('normal-status').textContent = getStatus(schedule.normal, dayOfWeek === 3);
+        document.getElementById('short-no-lunch-status').textContent = getStatus(schedule.shortNoLunch, false);
+        document.getElementById('short-with-lunch-status').textContent = getStatus(schedule.shortWithLunch, false);
+
+        document.querySelector('.tab-button').click();
+    </script>
+</body>
+</html>
