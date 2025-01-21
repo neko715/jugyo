@@ -56,42 +56,41 @@
 
     <script>
         // ここでtimeOffsetを設定
-        const timeOffset = 0; // 時間調整（秒）
+        const timeOffset = 5; // 5秒進める固定調整
 
-        const schedule = {
-            normal: [
-                { period: '朝の会', start: '8:10', end: '8:20' },
-                { period: 'スキル・読書', start: '8:20', end: '8:35' },
-                { period: '1枚時', start: '8:40', end: '9:25' },
-                { period: '2枚時', start: '9:30', end: '10:15' },
-                { period: '業間休み', start: '10:15', end: '10:30' },
-                { period: '3枚時', start: '10:35', end: '11:20' },
-                { period: '4枚時', start: '11:25', end: '12:10' },
-                { period: '昼食', start: '12:10', end: '12:55' },
-                { period: '昼休み', start: '12:55', end: '13:15' },  // 昼休み追加
-                { period: 'ふれあいタイム', start: '12:55', end: '13:35', wednesday: true },  // 水曜日のふれあいタイム
-                { period: '5枚時', start: '13:40', end: '14:25' },
-                { period: '6枚時', start: '14:30', end: '15:15' },
-            ],
-            shortNoLunch: [
-                { period: '朝の会', start: '8:10', end: '8:20' },
-                { period: '1枚時', start: '8:25', end: '9:10' },
-                { period: '2枚時', start: '9:15', end: '10:00' },
-                { period: '業間休み', start: '10:00', end: '10:10' },
-                { period: '3枚時', start: '10:10', end: '10:55' },
-                { period: '4枚時', start: '11:00', end: '11:45' },
-            ],
-            shortWithLunch: [
-                { period: '朝の会', start: '8:10', end: '8:20' },
-                { period: 'スキル・読書', start: '8:20', end: '8:35' },
-                { period: '1枚時', start: '8:40', end: '9:25' },
-                { period: '2枚時', start: '9:30', end: '10:15' },
-                { period: '業間休み', start: '10:15', end: '10:30' },
-                { period: '3枚時', start: '10:30', end: '11:15' },
-                { period: '4枚時', start: '11:20', end: '12:05' },
-                { period: '昼食', start: '12:10', end: '13:00' },
-            ],
-        };
+        const baseSchedule = [
+            { period: '朝の会', start: '8:10', end: '8:20' },
+            { period: 'スキル・読書', start: '8:20', end: '8:35' },
+            { period: '1枚時', start: '8:40', end: '9:25' },
+            { period: '2枚時', start: '9:30', end: '10:15' },
+            { period: '業間休み', start: '10:15', end: '10:30' },
+            { period: '3枚時', start: '10:35', end: '11:20' },
+            { period: '4枚時', start: '11:25', end: '12:10' },
+            { period: '昼食', start: '12:10', end: '12:55' },
+            { period: '昼休み', start: '12:55', end: '13:15' },
+            { period: '5枚時', start: '13:40', end: '14:25' },
+            { period: '6枚時', start: '14:30', end: '15:15' },
+        ];
+
+        const shortNoLunchSchedule = [
+            { period: '朝の会', start: '8:10', end: '8:20' },
+            { period: '1枚時', start: '8:25', end: '9:10' },
+            { period: '2枚時', start: '9:15', end: '10:00' },
+            { period: '業間休み', start: '10:00', end: '10:10' },
+            { period: '3枚時', start: '10:10', end: '10:55' },
+            { period: '4枚時', start: '11:00', end: '11:45' },
+        ];
+
+        const shortWithLunchSchedule = [
+            { period: '朝の会', start: '8:10', end: '8:20' },
+            { period: 'スキル・読書', start: '8:20', end: '8:35' },
+            { period: '1枚時', start: '8:40', end: '9:25' },
+            { period: '2枚時', start: '9:30', end: '10:15' },
+            { period: '業間休み', start: '10:15', end: '10:30' },
+            { period: '3枚時', start: '10:30', end: '11:15' },
+            { period: '4枚時', start: '11:20', end: '12:05' },
+            { period: '昼食', start: '12:10', end: '13:00' },
+        ];
 
         function parseTime(time) {
             const [hours, minutes] = time.split(':').map(Number);
@@ -105,24 +104,17 @@
             return `${hours}:${minutes}`;
         }
 
-        function addCleaningTime(schedule, dayOfWeek) {
-            // 月曜日から土曜日（0:月曜日～6:土曜日）に清掃時間を追加
-            if (dayOfWeek !== 3) { // 水曜日以外
-                schedule.push({
-                    period: '清掃',
-                    start: '13:20',
-                    end: '13:35'
-                });
+        function addWednesdayExtras(schedule, isWednesday) {
+            if (isWednesday) {
+                schedule.splice(8, 0, { period: 'ふれあいタイム', start: '12:55', end: '13:35' });
             }
         }
 
-        function getStatus(schedule, isWednesday) {
-            const now = new Date(new Date().getTime() + timeOffset * 1000); // 時間調整を加えた現在時刻
+        function getStatus(schedule) {
+            const now = new Date(new Date().getTime() + timeOffset * 1000);
 
             for (let i = 0; i < schedule.length; i++) {
                 const period = schedule[i];
-                if (period.wednesday && !isWednesday) continue;
-
                 const start = parseTime(period.start);
                 const end = parseTime(period.end);
 
@@ -143,20 +135,16 @@
 
         function updateStatuses() {
             const now = new Date();
-            const dayOfWeek = now.getDay(); // 0 = 日曜日, 1 = 月曜日, ..., 6 = 土曜日
+            const dayOfWeek = now.getDay();
             const isWednesday = (dayOfWeek === 3);
 
-            // 清掃時間を追加（月～土）
-            addCleaningTime(schedule.normal, dayOfWeek);
-            addCleaningTime(schedule.shortNoLunch, dayOfWeek);
-            addCleaningTime(schedule.shortWithLunch, dayOfWeek);
+            const normalSchedule = [...baseSchedule];
+            addWednesdayExtras(normalSchedule, isWednesday);
 
-            document.getElementById('normal-status').innerHTML = getStatus(schedule.normal, isWednesday);
-            document.getElementById('short-no-lunch-status').innerHTML = getStatus(schedule.shortNoLunch, false);
-            document.getElementById('short-with-lunch-status').innerHTML = getStatus(schedule.shortWithLunch, false);
+            document.getElementById('normal-status').innerHTML = getStatus(normalSchedule);
+            document.getElementById('short-no-lunch-status').innerHTML = getStatus(shortNoLunchSchedule);
+            document.getElementById('short-with-lunch-status').innerHTML = getStatus(shortWithLunchSchedule);
         }
-
-        let currentTab = null;
 
         document.querySelectorAll('.tab-button').forEach(button => {
             button.addEventListener('click', () => {
@@ -168,13 +156,10 @@
                 });
 
                 const targetContent = document.getElementById(button.dataset.target);
-
                 targetContent.classList.add('active');
-                currentTab = targetContent;
             });
         });
 
-        // 最初に「通常日課」を表示
         document.querySelector('.tab-button').click();
         updateStatuses();
         setInterval(updateStatuses, 1000);
