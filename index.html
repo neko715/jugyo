@@ -49,7 +49,7 @@
     </style>
 </head>
 <body>
-    <h1>学校の時間割トラッカー</h1><p>※クラブ/委員会/千教研はまだ非対応</p>
+    <h1>時間割トラッカー</h1><p>※クラブ/委員会/千教研はまだ非対応</p>
     <div class="tab">
         <button class="tab-button" data-target="normal">通常日課</button>
         <button class="tab-button" data-target="short-no-lunch">短縮４時間日課（給食なし）</button>
@@ -82,12 +82,13 @@
                 { period: '1枚時', start: '8:40', end: '9:25' },
                 { period: '2枚時', start: '9:30', end: '10:15' },
                 { period: '業間休み', start: '10:15', end: '10:30' },
-                { period: '3枚時', start: '10:30', end: '11:15' },
-                { period: '4枚時', start: '11:20', end: '12:05' },
-                { period: '昼食', start: '12:10', end: '13:00' },
-                { period: 'ふれあいタイム', start: '13:05', end: '13:45', wednesday: true },
-                { period: '5枚時', start: '13:50', end: '14:35' },
-                { period: '6枚時', start: '14:40', end: '15:25' },
+                { period: '3枚時', start: '10:35', end: '11:20' },
+                { period: '4枚時', start: '11:25', end: '12:10' },
+                { period: '昼食', start: '12:10', end: '12:55' },
+                { period: '昼休み', start: '12:55', end: '13:15' },  // 昼休み追加
+                { period: 'ふれあいタイム', start: '13:35', end: '14:15', wednesday: true },  // 水曜日のふれあいタイム
+                { period: '5枚時', start: '13:40', end: '14:25' },
+                { period: '6枚時', start: '14:30', end: '15:15' },
             ],
             shortNoLunch: [
                 { period: '朝の会', start: '8:10', end: '8:20' },
