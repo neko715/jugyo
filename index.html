@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>時間割トラッカー</title>
+    <title>学校の時間割トラッカー</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -49,7 +49,7 @@
     </style>
 </head>
 <body>
-    <h1>時間割トラッカー</h1><p>※委員会/クラブ/千教研は非対応(今後対応)</p>
+    <h1>学校の時間割トラッカー</h1><p>※委員会/クラブ/千教研は非対応(今後対応)</p>
     <div class="tab">
         <button class="tab-button" data-target="normal">通常日課</button>
         <button class="tab-button" data-target="short-no-lunch">短縮４時間日課（給食なし）</button>
@@ -78,28 +78,31 @@
                 { period: 'スキル・読書', start: '8:20', end: '8:35' },
                 { period: '1枚時', start: '8:40', end: '9:25' },
                 { period: '2枚時', start: '9:30', end: '10:15' },
-                { period: '3枚時', start: '10:20', end: '11:05' },
-                { period: '4枚時', start: '11:10', end: '11:55' },
-                { period: '昼食', start: '12:00', end: '12:50' },
-                { period: 'ふれあいタイム', start: '12:55', end: '13:35', wednesday: true },
-                { period: '5枚時', start: '13:40', end: '14:25' },
-                { period: '6枚時', start: '14:30', end: '15:15' },
+                { period: '業間休み', start: '10:15', end: '10:30' },
+                { period: '3枚時', start: '10:30', end: '11:15' },
+                { period: '4枚時', start: '11:20', end: '12:05' },
+                { period: '昼食', start: '12:10', end: '13:00' },
+                { period: 'ふれあいタイム', start: '13:05', end: '13:45', wednesday: true },
+                { period: '5枚時', start: '13:50', end: '14:35' },
+                { period: '6枚時', start: '14:40', end: '15:25' },
             ],
             shortNoLunch: [
                 { period: '朝の会', start: '8:10', end: '8:20' },
                 { period: '1枚時', start: '8:25', end: '9:10' },
                 { period: '2枚時', start: '9:15', end: '10:00' },
-                { period: '3枚時', start: '10:05', end: '10:50' },
-                { period: '4枚時', start: '10:55', end: '11:40' },
+                { period: '業間休み', start: '10:00', end: '10:10' },
+                { period: '3枚時', start: '10:10', end: '10:55' },
+                { period: '4枚時', start: '11:00', end: '11:45' },
             ],
             shortWithLunch: [
                 { period: '朝の会', start: '8:10', end: '8:20' },
                 { period: 'スキル・読書', start: '8:20', end: '8:35' },
                 { period: '1枚時', start: '8:40', end: '9:25' },
                 { period: '2枚時', start: '9:30', end: '10:15' },
-                { period: '3枚時', start: '10:20', end: '11:05' },
-                { period: '4枚時', start: '11:10', end: '11:55' },
-                { period: '昼食', start: '12:00', end: '12:50' },
+                { period: '業間休み', start: '10:15', end: '10:30' },
+                { period: '3枚時', start: '10:30', end: '11:15' },
+                { period: '4枚時', start: '11:20', end: '12:05' },
+                { period: '昼食', start: '12:10', end: '13:00' },
             ],
         };
 
@@ -130,7 +133,7 @@
                     const remainingTime = Math.max(0, Math.round((end - now) / 1000));
                     const minutes = Math.floor(remainingTime / 60);
                     const seconds = remainingTime % 60;
-                    return `${period.period}中です。あと${minutes}分${seconds}秒で終了します（${formatTime(end)}に終了）。`;
+                    return `${period.period}中です。あと${minutes}分${seconds}秒で終了します（${formatTime(end)}に終了）。※クラブ/委員会/千教研はまだ非対応`;
                 } else if (now < start) {
                     const remainingTime = Math.max(0, Math.round((start - now) / 1000));
                     const minutes = Math.floor(remainingTime / 60);
