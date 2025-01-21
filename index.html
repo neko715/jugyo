@@ -46,12 +46,6 @@
         .content.active.slide-left {
             transform: translateX(0);
         }
-        .adjust-controls {
-            margin-top: 20px;
-        }
-        .adjust-controls button {
-            margin-right: 10px;
-        }
     </style>
 </head>
 <body>
@@ -77,16 +71,8 @@
         <p id="short-with-lunch-status"></p>
     </div>
 
-    <div class="adjust-controls">
-        <button id="adjust-earlier">早める</button>
-        <button id="adjust-later">遅める</button>
-        <label>
-            <input type="number" id="adjust-seconds" value="5"> 秒
-        </label>
-    </div>
-
     <script>
-        let timeOffset = 0; // 秒単位の調整
+        let timeOffset = -5; // 5秒早める固定調整
 
         const schedule = {
             normal: [
@@ -169,16 +155,6 @@
             document.getElementById('short-no-lunch-status').innerHTML = getStatus(schedule.shortNoLunch, false);
             document.getElementById('short-with-lunch-status').innerHTML = getStatus(schedule.shortWithLunch, false);
         }
-
-        document.getElementById('adjust-earlier').addEventListener('click', () => {
-            const adjustValue = parseInt(document.getElementById('adjust-seconds').value, 10) || 0;
-            timeOffset -= adjustValue;
-        });
-
-        document.getElementById('adjust-later').addEventListener('click', () => {
-            const adjustValue = parseInt(document.getElementById('adjust-seconds').value, 10) || 0;
-            timeOffset += adjustValue;
-        });
 
         let currentTab = null;
 
