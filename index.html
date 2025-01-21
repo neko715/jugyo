@@ -32,7 +32,7 @@
     </style>
 </head>
 <body>
-    <h1>時間割トラッカー</h1><p>※クラブ/委員会まだ非対応</p>
+    <h1>時間割トラッカー</h1><p>※クラブ/委員会/千教研はまだ非対応</p>
     <div class="tab">
         <button class="tab-button" data-target="normal">通常日課</button>
         <button class="tab-button" data-target="short-no-lunch">短縮４時間日課（給食なし）</button>
@@ -105,6 +105,17 @@
             return `${hours}:${minutes}`;
         }
 
+        function addCleaningTime(schedule, dayOfWeek) {
+            // 月曜日から土曜日（0:月曜日～6:土曜日）に清掃時間を追加
+            if (dayOfWeek !== 3) { // 水曜日以外
+                schedule.push({
+                    period: '清掃',
+                    start: '13:20',
+                    end: '13:35'
+                });
+            }
+        }
+
         function getStatus(schedule, isWednesday) {
             const now = new Date(new Date().getTime() + timeOffset * 1000); // 時間調整を加えた現在時刻
 
@@ -135,10 +146,10 @@
             const dayOfWeek = now.getDay(); // 0 = 日曜日, 1 = 月曜日, ..., 6 = 土曜日
             const isWednesday = (dayOfWeek === 3);
 
-            // 水曜日以外の時間割に清掃を追加
-            if (!isWednesday) {
-                schedule.normal.push({ period: '清掃', start: '13:20', end: '13:35' });
-            }
+            // 清掃時間を追加（月～土）
+            addCleaningTime(schedule.normal, dayOfWeek);
+            addCleaningTime(schedule.shortNoLunch, dayOfWeek);
+            addCleaningTime(schedule.shortWithLunch, dayOfWeek);
 
             document.getElementById('normal-status').innerHTML = getStatus(schedule.normal, isWednesday);
             document.getElementById('short-no-lunch-status').innerHTML = getStatus(schedule.shortNoLunch, false);
