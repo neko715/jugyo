@@ -135,6 +135,13 @@
             const dayOfWeek = now.getDay(); // 0 = 日曜日, 1 = 月曜日, ..., 6 = 土曜日
             const isWednesday = (dayOfWeek === 3);
 
+            // 水曜日以外の時間割に清掃を追加
+            if (!isWednesday) {
+                schedule.normal.push({ period: '清掃', start: '13:20', end: '13:35' });
+                schedule.shortNoLunch.push({ period: '清掃', start: '13:20', end: '13:35' });
+                schedule.shortWithLunch.push({ period: '清掃', start: '13:20', end: '13:35' });
+            }
+
             document.getElementById('normal-status').innerHTML = getStatus(schedule.normal, isWednesday);
             document.getElementById('short-no-lunch-status').innerHTML = getStatus(schedule.shortNoLunch, false);
             document.getElementById('short-with-lunch-status').innerHTML = getStatus(schedule.shortWithLunch, false);
