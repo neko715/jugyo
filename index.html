@@ -24,27 +24,10 @@
             font-weight: bold;
         }
         .content {
-            visibility: hidden;
-            opacity: 0;
-            position: absolute;
-            width: 100%;
-            transform: translateX(0);
-            transition: opacity 0.5s ease, transform 0.5s ease;
+            display: none;
         }
         .content.active {
-            visibility: visible;
-            opacity: 1;
-            position: relative;
-        }
-        .slide-right {
-            transform: translateX(50px);
-        }
-        .slide-left {
-            transform: translateX(-50px);
-        }
-        .content.active.slide-right,
-        .content.active.slide-left {
-            transform: translateX(0);
+            display: block;
         }
     </style>
 </head>
@@ -73,8 +56,8 @@
 
     <script>
         // ここでtimeOffsetを設定
-        //const timeOffset = 0; // 時間調整（秒）
-        
+        const timeOffset = 0; // 時間調整（秒）
+
         const schedule = {
             normal: [
                 { period: '朝の会', start: '8:10', end: '8:20' },
@@ -165,21 +148,17 @@
                 button.classList.add('active');
 
                 document.querySelectorAll('.content').forEach(content => {
-                    content.classList.remove('active', 'slide-left', 'slide-right');
+                    content.classList.remove('active');
                 });
 
                 const targetContent = document.getElementById(button.dataset.target);
-
-                if (currentTab) {
-                    const direction = currentTab.compareDocumentPosition(targetContent) & Node.DOCUMENT_POSITION_FOLLOWING ? 'slide-right' : 'slide-left';
-                    targetContent.classList.add(direction);
-                }
 
                 targetContent.classList.add('active');
                 currentTab = targetContent;
             });
         });
 
+        // 最初に「通常日課」を表示
         document.querySelector('.tab-button').click();
         updateStatuses();
         setInterval(updateStatuses, 1000);
