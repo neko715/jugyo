@@ -46,6 +46,12 @@
         .content.active.slide-left {
             transform: translateX(0);
         }
+        .adjust-controls {
+            margin-top: 20px;
+        }
+        .adjust-controls button {
+            margin-right: 10px;
+        }
     </style>
 </head>
 <body>
@@ -71,7 +77,17 @@
         <p id="short-with-lunch-status"></p>
     </div>
 
+    <div class="adjust-controls">
+        <button id="adjust-earlier">早める</button>
+        <button id="adjust-later">遅める</button>
+        <label>
+            <input type="number" id="adjust-seconds" value="5"> 秒
+        </label>
+    </div>
+
     <script>
+        let timeOffset = 0; // 秒単位の調整
+
         const schedule = {
             normal: [
                 { period: '朝の会', start: '8:10', end: '8:20' },
@@ -109,7 +125,7 @@
         function parseTime(time) {
             const [hours, minutes] = time.split(':').map(Number);
             const now = new Date();
-            return new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
+            return new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, -timeOffset);
         }
 
         function formatTime(date) {
@@ -120,7 +136,7 @@
         }
 
         function getStatus(schedule, isWednesday) {
-            const now = new Date();
+            const now = new Date(new Date().getTime() + timeOffset * 1000);
 
             for (let i = 0; i < schedule.length; i++) {
                 const period = schedule[i];
@@ -133,12 +149,12 @@
                     const remainingTime = Math.max(0, Math.round((end - now) / 1000));
                     const minutes = Math.floor(remainingTime / 60);
                     const seconds = remainingTime % 60;
-                    return `${period.period}中です。あと${minutes}分${seconds}秒で終了します（${formatTime(end)}に終了）。※クラブ/委員会/千教研はまだ非対応`;
+                    return `${period.period}中です。あと<strong>${minutes}分${seconds}秒</strong>で終了します（${formatTime(end)}に終了）。※クラブ/委員会/千教研はまだ非対応`;
                 } else if (now < start) {
                     const remainingTime = Math.max(0, Math.round((start - now) / 1000));
                     const minutes = Math.floor(remainingTime / 60);
                     const seconds = remainingTime % 60;
-                    return `${period.period}はあと${minutes}分${seconds}秒で開始します（${formatTime(start)}に開始）。`;
+                    return `${period.period}はあと<strong>${minutes}分${seconds}秒</strong>で開始します（${formatTime(start)}に開始）。`;
                 }
             }
             return '現在、授業時間外です。';
@@ -149,10 +165,20 @@
             const dayOfWeek = now.getDay(); // 0 = 日曜日, 1 = 月曜日, ..., 6 = 土曜日
             const isWednesday = (dayOfWeek === 3);
 
-            document.getElementById('normal-status').textContent = getStatus(schedule.normal, isWednesday);
-            document.getElementById('short-no-lunch-status').textContent = getStatus(schedule.shortNoLunch, false);
-            document.getElementById('short-with-lunch-status').textContent = getStatus(schedule.shortWithLunch, false);
+            document.getElementById('normal-status').innerHTML = getStatus(schedule.normal, isWednesday);
+            document.getElementById('short-no-lunch-status').innerHTML = getStatus(schedule.shortNoLunch, false);
+            document.getElementById('short-with-lunch-status').innerHTML = getStatus(schedule.shortWithLunch, false);
         }
+
+        document.getElementById('adjust-earlier').addEventListener('click', () => {
+            const adjustValue = parseInt(document.getElementById('adjust-seconds').value, 10) || 0;
+            timeOffset -= adjustValue;
+        });
+
+        document.getElementById('adjust-later').addEventListener('click', () => {
+            const adjustValue = parseInt(document.getElementById('adjust-seconds').value, 10) || 0;
+            timeOffset += adjustValue;
+        });
 
         let currentTab = null;
 
