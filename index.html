@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>時間割トラッカー</title>
+    <title>学校の時間割トラッカー</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -49,7 +49,7 @@
     </style>
 </head>
 <body>
-    <h1>時間割トラッカー</h1><p>※クラブ/委員会/千教研はまだ非対応<p>
+    <h1>学校の時間割トラッカー</h1><p>※クラブ/委員会/千教研はまだ非対応<p>
     <div class="tab">
         <button class="tab-button" data-target="normal">通常日課</button>
         <button class="tab-button" data-target="short-no-lunch">短縮４時間日課（給食なし）</button>
@@ -122,7 +122,7 @@
         }
 
         function getStatus(schedule, isWednesday) {
-            const now = new Date(); // ここでは timeOffset を加えない
+            const now = new Date(); // timeOffsetを加えない
 
             for (let i = 0; i < schedule.length; i++) {
                 const period = schedule[i];
@@ -135,12 +135,12 @@
                     const remainingTime = Math.max(0, Math.round((end - now) / 1000));
                     const minutes = Math.floor(remainingTime / 60);
                     const seconds = remainingTime % 60;
-                    return `${period.period}中です。あと<strong>${minutes}分${seconds}秒</strong>で終了します（${formatTime(end)}に終了）。`;
+                    return `${period.period}中です。あと<strong>${minutes}分${seconds}秒</strong>で終了します。`;
                 } else if (now < start) {
                     const remainingTime = Math.max(0, Math.round((start - now) / 1000));
                     const minutes = Math.floor(remainingTime / 60);
                     const seconds = remainingTime % 60;
-                    return `${period.period}はあと<strong>${minutes}分${seconds}秒</strong>で開始します（${formatTime(start)}に開始）。`;
+                    return `${period.period}はあと<strong>${minutes}分${seconds}秒</strong>で開始します。`;
                 }
             }
             return '現在、授業時間外です。';
