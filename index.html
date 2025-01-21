@@ -72,7 +72,7 @@
     </div>
 
     <script>
-        //let timeOffset = 5; // 5秒早める固定調整
+        // let timeOffset = 5; // 5秒早める固定調整
 
         const schedule = {
             normal: [
@@ -117,8 +117,8 @@
         function formatTime(date) {
             const hours = String(date.getHours()).padStart(2, '0');
             const minutes = String(date.getMinutes()).padStart(2, '0');
-            const seconds = String(date.getSeconds()).padStart(2, '0');
-            return `${hours}:${minutes}:${seconds}`;
+            // 秒数は表示しない
+            return `${hours}:${minutes}`;
         }
 
         function getStatus(schedule, isWednesday) {
@@ -134,14 +134,13 @@
                 if (now >= start && now <= end) {
                     const remainingTime = Math.max(0, Math.round((end - now) / 1000));
                     const minutes = Math.floor(remainingTime / 60);
-                    const seconds = remainingTime % 60;
-                    // 終了時刻にはtimeOffsetを適用せず、終了時刻そのままで表示
+                    // 秒数を消す
                     return `${period.period}中です。あと<strong>${minutes}分</strong>で終了します（${formatTime(new Date(end.getTime() - timeOffset * 1000))}に終了）。`;
                 } else if (now < start) {
                     const remainingTime = Math.max(0, Math.round((start - now) / 1000));
                     const minutes = Math.floor(remainingTime / 60);
-                    const seconds = remainingTime % 60;
-                    return `${period.period}はあと<strong>${minutes}分${seconds}秒</strong>で開始します（${formatTime(start)}に開始）。`;
+                    // 秒数を消す
+                    return `${period.period}はあと<strong>${minutes}分</strong>で開始します（${formatTime(start)}に開始）。`;
                 }
             }
             return '現在、授業時間外です。';
