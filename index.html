@@ -32,7 +32,7 @@
     </style>
 </head>
 <body>
-    <h1>時間割トラッカー</h1><p>※クラブ/委員会/千教研はまだ非対応</p>
+    <h1>時間割トラッカー</h1><p>※クラブ/委員会まだ非対応</p>
     <div class="tab">
         <button class="tab-button" data-target="normal">通常日課</button>
         <button class="tab-button" data-target="short-no-lunch">短縮４時間日課（給食なし）</button>
@@ -138,8 +138,6 @@
             // 水曜日以外の時間割に清掃を追加
             if (!isWednesday) {
                 schedule.normal.push({ period: '清掃', start: '13:20', end: '13:35' });
-                schedule.shortNoLunch.push({ period: '清掃', start: '13:20', end: '13:35' });
-                schedule.shortWithLunch.push({ period: '清掃', start: '13:20', end: '13:35' });
             }
 
             document.getElementById('normal-status').innerHTML = getStatus(schedule.normal, isWednesday);
