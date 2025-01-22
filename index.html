@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>時間割トラッカー　</title>
+    <title>時間割トラッカー</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -29,10 +29,48 @@
         .content.active {
             display: block;
         }
+        .toggle {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+        .toggle-switch {
+            position: relative;
+            width: 40px;
+            height: 20px;
+            background: #ccc;
+            border-radius: 10px;
+            margin-right: 10px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .toggle-switch:before {
+            content: "";
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 16px;
+            height: 16px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+        .toggle-switch.on {
+            background: #4caf50;
+        }
+        .toggle-switch.on:before {
+            transform: translateX(20px);
+        }
     </style>
 </head>
 <body>
     <h1>時間割トラッカー</h1><p>※クラブ/委員会はまだ非対応</p>
+
+    <div class="toggle">
+        <div id="elapsed-time-toggle" class="toggle-switch"></div>
+        <label for="elapsed-time-toggle">経過時間</label>
+    </div>
+
     <div class="tab">
         <button class="tab-button" data-target="normal">通常日課</button>
         <button class="tab-button" data-target="short-no-lunch">短縮４時間日課（給食なし）</button>
@@ -55,8 +93,8 @@
     </div>
 
     <script>
-        // ここでtimeOffsetを設定
         const timeOffset = 5; // 5秒進める固定調整
+        let showElapsedTime = false; // 経過時間の表示フラグ
 
         const baseSchedule = [
             { period: '朝の会', start: '8:10', end: '8:20' },
@@ -72,26 +110,6 @@
             { period: '6時間目', start: '14:30', end: '15:15' },
         ];
 
-        const shortNoLunchSchedule = [
-            { period: '朝の会', start: '8:10', end: '8:20' },
-            { period: '1時間目', start: '8:25', end: '9:10' },
-            { period: '2時間目', start: '9:15', end: '10:00' },
-            { period: '業間休み', start: '10:00', end: '10:10' },
-            { period: '3時間目', start: '10:10', end: '10:55' },
-            { period: '4時間目', start: '11:00', end: '11:45' },
-        ];
-
-        const shortWithLunchSchedule = [
-            { period: '朝の会', start: '8:10', end: '8:20' },
-            { period: 'スキル・読書', start: '8:20', end: '8:35' },
-            { period: '1時間目', start: '8:40', end: '9:25' },
-            { period: '2時間目', start: '9:30', end: '10:15' },
-            { period: '業間休み', start: '10:15', end: '10:30' },
-            { period: '3時間目', start: '10:30', end: '11:15' },
-            { period: '4時間目', start: '11:20', end: '12:05' },
-            { period: '昼食', start: '12:10', end: '13:00' },
-        ];
-
         function parseTime(time) {
             const [hours, minutes] = time.split(':').map(Number);
             const now = new Date();
@@ -104,12 +122,6 @@
             return `${hours}:${minutes}`;
         }
 
-        function addWednesdayExtras(schedule, isWednesday) {
-            if (isWednesday) {
-                schedule.splice(8, 0, { period: 'ふれあいタイム', start: '12:55', end: '13:35' });
-            }
-        }
-
         function getStatus(schedule) {
             const now = new Date(new Date().getTime() + timeOffset * 1000);
 
@@ -120,19 +132,24 @@
 
                 if (now >= start && now <= end) {
                     const elapsedTime = Math.max(0, Math.round((now - start) / 1000));
-                    const remainingTime = Math.max(0, Math.round((end - now) / 1000));
-
                     const elapsedMinutes = Math.floor(elapsedTime / 60);
                     const elapsedSeconds = elapsedTime % 60;
+
+                    const remainingTime = Math.max(0, Math.round((end - now) / 1000));
                     const remainingMinutes = Math.floor(remainingTime / 60);
                     const remainingSeconds = remainingTime % 60;
 
-                    return `${period.period}中です。開始から<strong>${elapsedMinutes}分${elapsedSeconds}秒</strong>経過しました。あと<strong>${remainingMinutes}分${remainingSeconds}秒</strong>で終了します（${formatTime(end)}に終了）。`;
+                    let status = `${period.period}中です。あと<strong>${remainingMinutes}分${remainingSeconds}秒</strong>で終了します（${formatTime(end)}に終了）。`;
+
+                    if (showElapsedTime) {
+                        status += `<br>開始から<strong>${elapsedMinutes}分${elapsedSeconds}秒</strong>経過しました。`;
+                    }
+
+                    return status;
                 } else if (now < start) {
                     const remainingTime = Math.max(0, Math.round((start - now) / 1000));
                     const remainingMinutes = Math.floor(remainingTime / 60);
                     const remainingSeconds = remainingTime % 60;
-
                     return `${period.period}はあと<strong>${remainingMinutes}分${remainingSeconds}秒</strong>で開始します（${formatTime(start)}に開始）。`;
                 }
             }
@@ -140,17 +157,14 @@
         }
 
         function updateStatuses() {
-            const now = new Date();
-            const dayOfWeek = now.getDay();
-            const isWednesday = (dayOfWeek === 3);
-
-            const normalSchedule = [...baseSchedule];
-            addWednesdayExtras(normalSchedule, isWednesday);
-
-            document.getElementById('normal-status').innerHTML = getStatus(normalSchedule);
-            document.getElementById('short-no-lunch-status').innerHTML = getStatus(shortNoLunchSchedule);
-            document.getElementById('short-with-lunch-status').innerHTML = getStatus(shortWithLunchSchedule);
+            document.getElementById('normal-status').innerHTML = getStatus(baseSchedule);
         }
+
+        document.getElementById('elapsed-time-toggle').addEventListener('click', () => {
+            showElapsedTime = !showElapsedTime;
+            document.getElementById('elapsed-time-toggle').classList.toggle('on', showElapsedTime);
+            updateStatuses();
+        });
 
         document.querySelectorAll('.tab-button').forEach(button => {
             button.addEventListener('click', () => {
