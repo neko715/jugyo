@@ -64,6 +64,7 @@
     </style>
 </head>
 <body>
+    <h1>時間割トラッカー</h1>
     <p>※クラブ/委員会はまだ非対応</p>
 
     <div class="toggle">
@@ -153,13 +154,27 @@
                 const end = parseTime(period.end);
 
                 if (now >= start && now <= end) {
-                    const remainingTime = Math.max(0, Math.round((end - now) / 1000));
+                    const elapsedTime = Math.round((now - start) / 1000);
+                    const elapsedMinutes = Math.floor(elapsedTime / 60);
+                    const elapsedSeconds = elapsedTime % 60;
+
+                    const remainingTime = Math.round((end - now) / 1000);
                     const remainingMinutes = Math.floor(remainingTime / 60);
                     const remainingSeconds = remainingTime % 60;
 
-                    return `${period.period}中です。あと<strong>${remainingMinutes}分${remainingSeconds}秒</strong>で終了します（${formatTime(end)}に終了）。`;
+                    return `${period.period}中です。<br>
+                        残り時間: <strong>${remainingMinutes}分${remainingSeconds}秒</strong><br>
+                        ${
+                            showElapsedTime
+                                ? `経過時間: <strong>${elapsedMinutes}分${elapsedSeconds}秒</strong>`
+                                : ""
+                        }`;
                 } else if (now < start) {
-                    return `${period.period}はあと<strong>${Math.floor((start - now) / 60000)}分</strong>で開始します。`;
+                    const timeToStart = Math.round((start - now) / 1000);
+                    const minutesToStart = Math.floor(timeToStart / 60);
+                    const secondsToStart = timeToStart % 60;
+
+                    return `${period.period}はあと<strong>${minutesToStart}分${secondsToStart}秒</strong>で開始します。`;
                 }
             }
 
