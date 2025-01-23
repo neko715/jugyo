@@ -1,126 +1,208 @@
-<script>
-    const timeOffset = 5; // 5秒進める固定調整
-    let showElapsedTime = false; // 経過時間の表示フラグ
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>時間割トラッカー</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .tab {
+            display: flex;
+            cursor: pointer;
+        }
+        .tab button {
+            padding: 10px;
+            border: 1px solid #ccc;
+            background: #f9f9f9;
+            margin-right: 5px;
+            transition: background 0.3s ease;
+        }
+        .tab button.active {
+            background: #ddd;
+            font-weight: bold;
+        }
+        .content {
+            display: none;
+        }
+        .content.active {
+            display: block;
+        }
+        .toggle {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+        .toggle-switch {
+            position: relative;
+            width: 40px;
+            height: 20px;
+            background: #ccc;
+            border-radius: 10px;
+            margin-right: 10px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .toggle-switch:before {
+            content: "";
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 16px;
+            height: 16px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+        .toggle-switch.on {
+            background: #4caf50;
+        }
+        .toggle-switch.on:before {
+            transform: translateX(20px);
+        }
+    </style>
+</head>
+<body>
+    <h1>時間割トラッカー</h1>
+    <p>※クラブ/委員会はまだ非対応</p>
 
-    // スケジュール定義
-    const baseSchedule = [
-        { period: '朝の会', start: '8:10', end: '8:20' },
-        { period: 'スキル・読書', start: '8:20', end: '8:35' },
-        { period: '1時間目', start: '8:40', end: '9:25' },
-        { period: '2時間目', start: '9:30', end: '10:15' },
-        { period: '業間休み', start: '10:15', end: '10:30' },
-        { period: '3時間目', start: '10:35', end: '11:20' },
-        { period: '4時間目', start: '11:25', end: '12:10' },
-        { period: '昼食', start: '12:10', end: '12:55' },
-        { period: '昼休み', start: '12:55', end: '13:15' },
-        { period: '5時間目', start: '13:40', end: '14:25' },
-        { period: '6時間目', start: '14:30', end: '15:15' },
-    ];
+    <div class="toggle">
+        <div id="elapsed-time-toggle" class="toggle-switch"></div>
+        <label for="elapsed-time-toggle">経過時間</label>
+    </div>
 
-    const shortNoLunchSchedule = [
-        { period: '朝の会', start: '8:10', end: '8:20' },
-        { period: '1時間目', start: '8:25', end: '9:10' },
-        { period: '2時間目', start: '9:15', end: '10:00' },
-        { period: '業間休み', start: '10:00', end: '10:05' },
-        { period: '3時間目', start: '10:10', end: '10:55' },
-        { period: '4時間目', start: '11:00', end: '11:55' },
-    ];
+    <div class="tab">
+        <button class="tab-button" data-target="normal">通常日課</button>
+        <button class="tab-button" data-target="short-no-lunch">短縮４時間日課（給食なし）</button>
+        <button class="tab-button" data-target="short-with-lunch">短縮４時間日課（給食あり）</button>
+    </div>
 
-    const shortWithLunchSchedule = [
-        { period: '朝の会', start: '8:10', end: '8:20' },
-	{ period: 'スキル・読書', start: '8:20', end: '8:35' },
-        { period: '1時間目', start: '8:40', end: '9:25' },
-        { period: '2時間目', start: '9:30', end: '10:15' },
-        { period: '業間休み', start: '10:15', end: '10:20' },
-        { period: '3時間目', start: '10:25', end: '11:10' },
-        { period: '4時間目', start: '11:15', end: '12:00' },
-        { period: '昼食', start: '12:00', end: '12:45' },
-    ];
+    <div id="normal" class="content">
+        <h2>通常日課</h2>
+        <p id="normal-status"></p>
+    </div>
 
-    let currentSchedule = baseSchedule;
+    <div id="short-no-lunch" class="content">
+        <h2>短縮４時間日課（給食なし）</h2>
+        <p id="short-no-lunch-status"></p>
+    </div>
 
-    function parseTime(time) {
-        const [hours, minutes] = time.split(':').map(Number);
-        const now = new Date();
-        return new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
-    }
+    <div id="short-with-lunch" class="content">
+        <h2>短縮４時間日課（給食あり）</h2>
+        <p id="short-with-lunch-status"></p>
+    </div>
 
-    function formatTime(date) {
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        return `${hours}:${minutes}`;
-    }
+    <script>
+        const timeOffset = 5; // 5秒進める固定調整
+        let showElapsedTime = false;
 
-    function getStatus(schedule) {
-        const now = new Date(new Date().getTime() + timeOffset * 1000);
+        // スケジュールデータ
+        const schedules = {
+            normal: [
+                { period: '朝の会', start: '8:10', end: '8:20' },
+                { period: 'スキル・読書', start: '8:20', end: '8:35' },
+                { period: '1時間目', start: '8:40', end: '9:25' },
+                { period: '2時間目', start: '9:30', end: '10:15' },
+                { period: '業間休み', start: '10:15', end: '10:30' },
+                { period: '3時間目', start: '10:35', end: '11:20' },
+                { period: '4時間目', start: '11:25', end: '12:10' },
+                { period: '昼食', start: '12:10', end: '12:55' },
+                { period: '昼休み', start: '12:55', end: '13:15' },
+                { period: '5時間目', start: '13:40', end: '14:25' },
+                { period: '6時間目', start: '14:30', end: '15:15' },
+            ],
+            'short-no-lunch': [
+                { period: '朝の会', start: '8:10', end: '8:20' },
+                { period: '1時間目', start: '8:25', end: '9:10' },
+                { period: '2時間目', start: '9:15', end: '10:00' },
+                { period: '業間休み', start: '10:00', end: '10:05' },
+                { period: '3時間目', start: '10:10', end: '10:55' },
+                { period: '4時間目', start: '11:00', end: '11:55' },
+            ],
+            'short-with-lunch': [
+                { period: '朝の会', start: '8:10', end: '8:20' },
+                { period: 'スキル・読書', start: '8:20', end: '8:35' },
+                { period: '1時間目', start: '8:40', end: '9:25' },
+                { period: '2時間目', start: '9:30', end: '10:15' },
+                { period: '業間休み', start: '10:15', end: '10:20' },
+                { period: '3時間目', start: '10:25', end: '11:10' },
+                { period: '4時間目', start: '11:15', end: '12:00' },
+                { period: '昼食', start: '12:00', end: '12:45' },
+            ],
+        };
 
-        for (let i = 0; i < schedule.length; i++) {
-            const period = schedule[i];
-            const start = parseTime(period.start);
-            const end = parseTime(period.end);
+        // 時間処理関数
+        function parseTime(time) {
+            const [hours, minutes] = time.split(':').map(Number);
+            const now = new Date();
+            return new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
+        }
 
-            if (now >= start && now <= end) {
-                const elapsedTime = Math.max(0, Math.round((now - start) / 1000));
-                const elapsedMinutes = Math.floor(elapsedTime / 60);
-                const elapsedSeconds = elapsedTime % 60;
+        function formatTime(date) {
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${hours}:${minutes}`;
+        }
 
-                const remainingTime = Math.max(0, Math.round((end - now) / 1000));
-                const remainingMinutes = Math.floor(remainingTime / 60);
-                const remainingSeconds = remainingTime % 60;
+        function getStatus(schedule) {
+            const now = new Date(new Date().getTime() + timeOffset * 1000);
 
-                let status = `${period.period}中です。あと<strong>${remainingMinutes}分${remainingSeconds}秒</strong>で終了します（${formatTime(end)}に終了）。`;
+            for (let i = 0; i < schedule.length; i++) {
+                const period = schedule[i];
+                const start = parseTime(period.start);
+                const end = parseTime(period.end);
 
-                if (showElapsedTime) {
-                    status += `<br>開始から<strong>${elapsedMinutes}分${elapsedSeconds}秒</strong>経過しました。`;
+                if (now >= start && now <= end) {
+                    const remainingTime = Math.max(0, Math.round((end - now) / 1000));
+                    const remainingMinutes = Math.floor(remainingTime / 60);
+                    const remainingSeconds = remainingTime % 60;
+
+                    return `${period.period}中です。あと<strong>${remainingMinutes}分${remainingSeconds}秒</strong>で終了します（${formatTime(end)}に終了）。`;
+                } else if (now < start) {
+                    return `${period.period}はあと<strong>${Math.floor((start - now) / 60000)}分</strong>で開始します。`;
                 }
+            }
 
-                return status;
-            } else if (now < start) {
-                const remainingTime = Math.max(0, Math.round((start - now) / 1000));
-                const remainingMinutes = Math.floor(remainingTime / 60);
-                const remainingSeconds = remainingTime % 60;
-                return `${period.period}はあと<strong>${remainingMinutes}分${remainingSeconds}秒</strong>で開始します（${formatTime(start)}に開始）。`;
+            return '現在、授業時間外です。';
+        }
+
+        // ステータス更新
+        function updateStatuses() {
+            for (const [key, schedule] of Object.entries(schedules)) {
+                const statusElement = document.getElementById(`${key}-status`);
+                if (statusElement) {
+                    statusElement.innerHTML = getStatus(schedule);
+                }
             }
         }
-        return '現在、授業時間外です。';
-    }
 
-    function updateStatuses() {
-        document.getElementById('normal-status').innerHTML = getStatus(currentSchedule);
-        document.getElementById('short-no-lunch-status').innerHTML = getStatus(shortNoLunchSchedule);
-        document.getElementById('short-with-lunch-status').innerHTML = getStatus(shortWithLunchSchedule);
-    }
+        // タブ切り替え
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
 
-    document.getElementById('elapsed-time-toggle').addEventListener('click', () => {
-        showElapsedTime = !showElapsedTime;
-        document.getElementById('elapsed-time-toggle').classList.toggle('on', showElapsedTime);
-        updateStatuses();
-    });
+                document.querySelectorAll('.content').forEach(content => {
+                    content.classList.remove('active');
+                });
 
-    document.querySelectorAll('.tab-button').forEach(button => {
-        button.addEventListener('click', () => {
-            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-
-            document.querySelectorAll('.content').forEach(content => {
-                content.classList.remove('active');
+                const targetContent = document.getElementById(button.dataset.target);
+                targetContent.classList.add('active');
             });
+        });
 
-            const targetContent = document.getElementById(button.dataset.target);
-            targetContent.classList.add('active');
-
-            if (button.dataset.target === 'normal') {
-                currentSchedule = baseSchedule;
-            } else if (button.dataset.target === 'short-no-lunch') {
-                currentSchedule = shortNoLunchSchedule;
-            } else if (button.dataset.target === 'short-with-lunch') {
-                currentSchedule = shortWithLunchSchedule;
-            }
+        // トグルボタンのイベント
+        document.getElementById('elapsed-time-toggle').addEventListener('click', () => {
+            showElapsedTime = !showElapsedTime;
+            document.getElementById('elapsed-time-toggle').classList.toggle('on', showElapsedTime);
             updateStatuses();
         });
-    });
 
-    document.querySelector('.tab-button').click();
-    updateStatuses();
-    setInterval(updateStatuses, 1000);
-</script>
+        // 初期設定
+        document.querySelector('.tab-button').click();
+        updateStatuses();
+        setInterval(updateStatuses, 1000);
+    </script>
+</body>
+</html>
