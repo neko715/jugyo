@@ -11,6 +11,7 @@
         .tab {
             display: flex;
             cursor: pointer;
+            margin-top: 20px;
         }
         .tab button {
             padding: 10px;
@@ -72,6 +73,7 @@
         <label for="elapsed-time-toggle">経過時間</label>
     </div>
 
+    <!-- タブの上部に配置 -->
     <div class="tab">
         <button class="tab-button" data-target="normal">通常日課</button>
         <button class="tab-button" data-target="short-no-lunch">短縮４時間日課（給食なし）</button>
@@ -91,6 +93,11 @@
     <div id="short-with-lunch" class="content">
         <h2>短縮４時間日課（給食あり）</h2>
         <p id="short-with-lunch-status"></p>
+    </div>
+
+    <div id="schedule">
+        <h2>本日の日程</h2>
+        <ul id="today-schedule"></ul>
     </div>
 
     <script>
@@ -132,7 +139,49 @@
             ],
         };
 
-        // 時間処理関数
+        const weeklySchedule = {
+            月曜日: [
+                "1時間目: 算数",
+                "2時間目: 図工",
+                "3時間目: 図工",
+                "4時間目: 社会",
+                "5時間目: りか",
+                "6時間目: なし",
+            ],
+            火曜日: [
+                "1時間目: 国語",
+                "2時間目: 算数",
+                "3時間目: 総合",
+                "4時間目: 算数",
+                "5時間目: 書写",
+                "6時間目: 社会",
+            ],
+            水曜日: [
+                "1時間目: 英語",
+                "2時間目: 体育",
+                "3時間目: 算数",
+                "4時間目: 社会",
+                "5時間目: 国語",
+                "6時間目: クラブ",
+            ],
+            木曜日: [
+                "1時間目: 理科",
+                "2時間目: 理科",
+                "3時間目: 道徳",
+                "4時間目: 国語",
+                "5時間目: 算数",
+                "6時間目: 英語",
+            ],
+            金曜日: [
+                "1時間目: 体育",
+                "2時間目: 社会",
+                "3時間目: 英語",
+                "4時間目: 家庭",
+                "5時間目: 図書",
+                "6時間目: なし",
+            ],
+        };
+
         function parseTime(time) {
             const [hours, minutes] = time.split(':').map(Number);
             const now = new Date();
@@ -181,7 +230,6 @@
             return '現在、授業時間外です。';
         }
 
-        // ステータス更新
         function updateStatuses() {
             for (const [key, schedule] of Object.entries(schedules)) {
                 const statusElement = document.getElementById(`${key}-status`);
@@ -191,32 +239,70 @@
             }
         }
 
-        // タブ切り替え
-        document.querySelectorAll('.tab-button').forEach(button => {
-            button.addEventListener('click', () => {
-                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        function getTodaySchedule() {
+            const days = ["日曜日", "月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日"];
+            const today = new Date().getDay();
+            const todayName = days[today];
+
+            if (weeklySchedule[todayName]) {
+                return weeklySchedule[todayName];
+            } else {
+                return ["本日は授業がありません。"];
+            }
+        }
+
+        function displayTodaySchedule() {
+            const todaySchedule = getTodaySchedule();
+            const scheduleElement = document.getElementById("today-schedule");
+            scheduleElement.innerHTML = "";
+
+            todaySchedule.forEach((item) => {
+                const li = document.createElement("li");
+                li.textContent = item;
+                scheduleElement.appendChild(li);
+            });
+        }
+
+        // タブの切り替え処理
+        const tabButtons = document.querySelectorAll('.tab-button');
+        tabButtons.forEach((button) => {
+            button.addEventListener('click', (event) => {
+                const target = event.target.dataset.target;
+
+                // タブのアクティブ状態を切り替え
+                tabButtons.forEach((btn) => btn.classList.remove('active'));
                 button.classList.add('active');
 
-                document.querySelectorAll('.content').forEach(content => {
+                // コンテンツの表示切り替え
+                const contents = document.querySelectorAll('.content');
+                contents.forEach((content) => {
                     content.classList.remove('active');
+                    if (content.id === target) {
+                        content.classList.add('active');
+                    }
                 });
-
-                const targetContent = document.getElementById(button.dataset.target);
-                targetContent.classList.add('active');
             });
         });
 
-        // トグルボタンのイベント
-        document.getElementById('elapsed-time-toggle').addEventListener('click', () => {
+        // 初期表示
+        document.querySelector('.tab-button').classList.add('active');
+        document.getElementById('normal').classList.add('active');
+        displayTodaySchedule();
+        updateStatuses();
+
+        // 経過時間トグルの切り替え
+        const toggleSwitch = document.getElementById('elapsed-time-toggle');
+        toggleSwitch.addEventListener('click', () => {
             showElapsedTime = !showElapsedTime;
-            document.getElementById('elapsed-time-toggle').classList.toggle('on', showElapsedTime);
-            updateStatuses();
+            toggleSwitch.classList.toggle('on');
+            updateStatuses(); // 更新
         });
 
-        // 初期設定
-        document.querySelector('.tab-button').click();
-        updateStatuses();
-        setInterval(updateStatuses, 1000);
+        // 一定時間ごとにステータスを更新
+        setInterval(() => {
+            updateStatuses();
+            displayTodaySchedule();
+        }, 1000); // 1秒ごとに更新
     </script>
 </body>
 </html>
