@@ -62,6 +62,13 @@
         .toggle-switch.on:before {
             transform: translateX(20px);
         }
+        /* 追加：スケジュールとiframeを横並びにする */
+        #schedule-container {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -99,13 +106,18 @@
         <p id="short-with-lunch-status"></p>
     </div>
 
-    <div id="schedule">
-        <h2>今日の日程</h2>
-        <ul id="today-schedule"></ul>
+    <!-- ここから修正部分：スケジュールとiframeを同じコンテナに配置 -->
+    <div id="schedule-container">
+        <div id="schedule">
+            <h2>今日の日程</h2>
+            <ul id="today-schedule"></ul>
+        </div>
+        <iframe src="https://docs.google.com/document/d/1rxI-JNmtwXkYH3Gr2tDp9G_jIJMFq2n1LaQbtT3w6Bk/edit?usp=sharing" width="600" height="400"></iframe>
     </div>
+    <!-- ここまで修正部分 -->
 
     <script>
-        const timeOffset = 5; // 5秒進める固定調整
+        const timeOffset = 6; // 5秒進める固定調整
         let showElapsedTime = false;
 
         // スケジュールデータ
@@ -308,7 +320,5 @@
             displayTodaySchedule();
         }, 1000); // 1秒ごとに更新
     </script>
-    <iframe src="https://docs.google.com/document/d/1rxI-JNmtwXkYH3Gr2tDp9G_jIJMFq2n1LaQbtT3w6Bk/edit?usp=sharing" width="600" height="400"></iframe>
-
 </body>
 </html>
