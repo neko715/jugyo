@@ -270,21 +270,23 @@
             });
         }
 
+        function changeTab(tab) {
+            document.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
+            tab.classList.add('active');
+            document.querySelectorAll('.content').forEach(content => content.classList.remove('active'));
+            const target = document.getElementById(tab.getAttribute('data-target'));
+            target.classList.add('active');
+            currentScheduleType = tab.getAttribute('data-target');
+            updateTime();
+        }
+
         document.querySelectorAll('.tab-button').forEach(button => {
-            button.addEventListener('click', () => {
-                document.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
-                button.classList.add('active');
-                document.querySelectorAll('.content').forEach(content => content.classList.remove('active'));
-                const targetContent = document.getElementById(button.getAttribute('data-target'));
-                targetContent.classList.add('active');
-                currentScheduleType = button.getAttribute('data-target');
-                updateTime();
-            });
+            button.addEventListener('click', () => changeTab(button));
         });
 
-        updateTodaySchedule();
-        updateTime();
-        setInterval(updateTime, 1000); // 1秒ごとに残り時間を更新
+        setInterval(updateTime, 1000);  // 1秒ごとに時間を更新
+        setInterval(updateTodaySchedule, 1000);  // 1秒ごとに今日の時間割を更新
+
     </script>
 </body>
 </html>
