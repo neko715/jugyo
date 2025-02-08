@@ -89,7 +89,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>時間割トラッカー</h1>
+            <h1>時間割トラッカｱｱｱｱｱｱｱｱｱー</h1>
             <p>※クラブ/委員会はまだ非対応</p>
             <p style="color: gray; font-size: small;">デザインアップデートが適応されました。</p>
             <p>
@@ -270,23 +270,49 @@
             });
         }
 
-        function changeTab(tab) {
-            document.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
-            tab.classList.add('active');
-            document.querySelectorAll('.content').forEach(content => content.classList.remove('active'));
-            const target = document.getElementById(tab.getAttribute('data-target'));
-            target.classList.add('active');
-            currentScheduleType = tab.getAttribute('data-target');
+        function scheduleReload() {
+            const now = new Date();
+            let nextReloadTime = null;
+
+            tables[currentScheduleType].forEach(period => {
+                const periodEndTime = parseTime(period.end);
+                if (now < periodEndTime && !nextReloadTime) {
+                    nextReloadTime = periodEndTime;
+                }
+            });
+
+            if (nextReloadTime) {
+                const reloadDelay = nextReloadTime - now; // 授業終了の瞬間にリロード
+                if (reloadDelay > 0) {
+                    setTimeout(() => location.reload(), reloadDelay);
+                }
+            }
+        }
+
+        function switchTab(target) {
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            document.querySelector(`.tab-button[data-target="${target}"]`).classList.add('active');
+            document.querySelectorAll('.content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(target).classList.add('active');
+            currentScheduleType = target;
             updateTime();
+            scheduleReload();
         }
 
         document.querySelectorAll('.tab-button').forEach(button => {
-            button.addEventListener('click', () => changeTab(button));
+            button.addEventListener('click', () => {
+                switchTab(button.dataset.target);
+            });
         });
 
-        setInterval(updateTime, 1000);  // 1秒ごとに時間を更新
-        setInterval(updateTodaySchedule, 1000);  // 1秒ごとに今日の時間割を更新
-
+        setInterval(updateTime, 1000); // 1秒ごとに残り時間と経過時間を更新
+        updateTime();
+        updateTodaySchedule();
+        scheduleReload();
     </script>
 </body>
 </html>
