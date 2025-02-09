@@ -228,7 +228,7 @@
                 const periodEndTime = parseTime(period.end);
                 return now >= periodStartTime && now <= periodEndTime;
             });
-            const statusElement = document.getElementById(`${currentScheduleType}-status`);
+            const statusElement = document.getElementById(${currentScheduleType}-status);
             if (currentPeriod) {
                 const periodStartTime = parseTime(currentPeriod.start);
                 const periodEndTime = parseTime(currentPeriod.end);
@@ -238,7 +238,7 @@
                 const secondsElapsed = Math.floor((elapsedTime % 60000) / 1000);
                 const minutesRemaining = Math.floor(remainingTime / 60000);
                 const secondsRemaining = Math.floor((remainingTime % 60000) / 1000);
-                statusElement.innerHTML = `${currentPeriod.period} - 残り時間: ${minutesRemaining}分 ${secondsRemaining}秒 <br> 経過時間: ${minutesElapsed}分 ${secondsElapsed}秒`;
+                statusElement.innerHTML = ${currentPeriod.period} - 残り時間: ${minutesRemaining}分 ${secondsRemaining}秒 <br> 経過時間: ${minutesElapsed}分 ${secondsElapsed}秒;
             } else {
                 // 休み時間で次の授業までの残り時間を表示
                 const nextPeriod = tables[currentScheduleType].find(period => {
@@ -251,27 +251,68 @@
                     const secondsRemainingForNext = Math.floor(nextPeriodRemainingTime / 1000);
                     const minutesRemainingForNext = Math.floor(secondsRemainingForNext / 60);
                     const secondsRemaining = secondsRemainingForNext % 60;
-                    statusElement.innerHTML = `開始まで残り ${minutesRemainingForNext}分 ${secondsRemaining}秒`;
+                    statusElement.innerHTML = 開始まで残り ${minutesRemainingForNext}分 ${secondsRemaining}秒;
                 }
             }
-            setTimeout(updateTime, 1000); // 毎秒更新
         }
 
-        function setTabActive(tabName) {
-            const allTabs = document.querySelectorAll('.tab-button');
-            const allContents = document.querySelectorAll('.content');
-            allTabs.forEach(tab => tab.classList.remove('active'));
-            allContents.forEach(content => content.classList.remove('active'));
-            document.querySelector(`.tab-button[data-target="${tabName}"]`).classList.add('active');
-            document.getElementById(tabName).classList.add('active');
-            currentScheduleType = tabName;
+        function updateTodaySchedule() {
+            const now = new Date();
+            const dayOfWeek = now.getDay();
+            const days = ['日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日'];
+            const schedule = weeklySchedule[days[dayOfWeek]];
+            const tbody = document.getElementById('today-schedule').getElementsByTagName('tbody')[0];
+            tbody.innerHTML = '';
+            schedule.forEach((period, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = <td>${index + 1}時間目</td><td>${period}</td>;
+                tbody.appendChild(row);
+            });
+        }
+
+        function scheduleReload() {
+            const now = new Date();
+            let nextReloadTime = null;
+
+            tables[currentScheduleType].forEach(period => {
+                const periodEndTime = parseTime(period.end);
+                if (now < periodEndTime && !nextReloadTime) {
+                    nextReloadTime = periodEndTime;
+                }
+            });
+
+            if (nextReloadTime) {
+                const reloadDelay = nextReloadTime - now; // 授業終了の瞬間にリロード
+                if (reloadDelay > 0) {
+                    setTimeout(() => location.reload(), reloadDelay);
+                }
+            }
+        }
+
+        function switchTab(target) {
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            document.querySelector(.tab-button[data-target="${target}"]).classList.add('active');
+            document.querySelectorAll('.content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(target).classList.add('active');
+            currentScheduleType = target;
+            updateTime();
+            scheduleReload();
         }
 
         document.querySelectorAll('.tab-button').forEach(button => {
-            button.addEventListener('click', () => setTabActive(button.dataset.target));
+            button.addEventListener('click', () => {
+                switchTab(button.dataset.target);
+            });
         });
 
-        updateTime(); // 初期呼び出し
+        setInterval(updateTime, 1000); // 1秒ごとに残り時間と経過時間を更新
+        updateTime();
+        updateTodaySchedule();
+        scheduleReload();
     </script>
 </body>
 </html>
