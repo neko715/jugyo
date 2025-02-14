@@ -93,7 +93,7 @@
             <p>※クラブ/委員会はまだ非対応</p>
             <p style="color: gray; font-size: small;">デザインアップデートが適応されました。</p>
             <p>
-                <a href="https://neko715.github.io/keisan/" target="_blank">設定用ファイルを変更(他の人にも反映されます)</a>
+                <a href="https://neko715.github.io/keisan/" target="_blank">残り時間を変更</a>
             </p>
         </div>
         <div class="tab">
@@ -149,7 +149,7 @@
                 newA1Element.innerHTML = "<strong>計算中...</strong> ";
                 document.querySelector(".header").appendChild(newA1Element);
             } else {
-                A1Element.innerHTML = "<strong>卒業まであと</strong>"+ A1Value +"<strong>時間(たぶん)</strong> " ;
+                A1Element.innerHTML = "<strong>卒業まであと</strong>"+ A1Value +"<strong>時間</strong> " ;
             }
         } catch (error) {
             console.error("データ取得に失敗しました:", error);
@@ -317,4 +317,3 @@
     </script>
 </body>
 </html>
-
