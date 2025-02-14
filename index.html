@@ -130,6 +130,33 @@
         </div>
     </div>
     <script>
+    async function fetchSpreadsheetData() {
+        const sheetId = "1hohrA09f_BWT3lh2owfHu3npx33PBEpDXA2bpAlZB6U"; // あなたのスプレッドシートID
+        const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
+
+        try {
+            const response = await fetch(url);
+            const text = await response.text();
+            const jsonText = text.substring(47, text.length - 2); // GoogleのJSONレスポンスの余計な部分を削除
+            const jsonData = JSON.parse(jsonText);
+            const A1Value = jsonData.table.rows[0].c[0].v; // A1の値を取得
+
+            // A1の値を更新
+            const A1Element = document.getElementById("A1Value");
+            if (!A1Element) {
+                const newA1Element = document.createElement("p");
+                newA1Element.id = "A1Value";
+                newA1Element.innerHTML = "<strong>計算中...</strong> ";
+                document.querySelector(".header").appendChild(newA1Element);
+            } else {
+                A1Element.innerHTML = "<strong>卒業まであと</strong>"+ A1Value +"<strong>時間(たぶん)</strong> " ;
+            }
+        } catch (error) {
+            console.error("データ取得に失敗しました:", error);
+        }
+    }
+
+    setInterval(fetchSpreadsheetData, 1000); // 1秒ごとに更新
         const tables = {
             normal: [
                 { period: '朝の会', start: '8:10', end: '8:20' },
@@ -166,44 +193,44 @@
 
         const weeklySchedule = {
             月曜日: [
-                " 図工　卒業制作",
-                " 音楽",
-                " 理科　水溶液の性質と働き",
+                " 算数　自学",
+                " 図工　卒業制作　やすりがけ",
+                " 図工　卒業制作　ニス塗り",
                 " 社会　新しい日本　平和な日本へ",
-                " 書写　青木先生",
+                " 新しい日本に　龍馬の心",
                 " なし",
             ],
             火曜日: [
-                " 建",
-                " 国",
-                " 記",
-                " 日",
-                " ！",
-                " ！",
+                " 算数　自学",
+                " 書写",
+                " 学活　生活アンケート",
+                " 社会　新しい日本　平和な日本へ",
+                " 総合　未来へのパスポート",
+                " 音楽　送る会練習⑤",
             ],
             水曜日: [
-                " 英語 My future",
-                " 理科　水溶液の性質と働き",
-                " 国語　津田梅子",
-                " 送る会練習②",
+                " 英語　MyFuture,mydream.",
+                " 国語　漢字のまとめ(テスト) 上7~下117",
+                " 国語　日本語の文字　特徴について",
+                " 音楽　送る会練習⑥",
                 " 社会　新しい日本　平和な日本へ",
-                " 児童会　委員会活動",
+                " クラブ　最終",
             ],
             木曜日: [
                 " 理科　地球に生きる",
                 " 理科　地球に生きる",
-                " 音楽",
-                " 図工　卒業制作",
-                " 英語 My future",
-                " 送る会練習③",
+                " 理科/社会　地球に生きる→長く続いた戦争と人々の暮らし　新しい日本　平和な日本へ(テスト)",
+                " 国語　日本語の文字",
+                " 社会　アメリカについて",
+                " 音楽　送る会練習⑦",
             ],
             金曜日: [
-                " 国語　津田梅子",
-                " 算数　6年間のまとめ",
-                " 図工　卒業制作",
-                " 総合　未来へのパスポート",
-                " 図書　図書室→国語",
-                " 送る会練習④",
+                " 理科　地球に生きる",
+                " 児童会　送る会　9:25〜入場",
+                " 児童会　送る会",
+                " 社会　アメリカについて",
+                " 家庭",
+                " 図書　図書室→日本語の文字",
             ],
         };
 
