@@ -149,7 +149,7 @@
                 newA1Element.innerHTML = "<strong>計算中...</strong> ";
                 document.querySelector(".header").appendChild(newA1Element);
             } else {
-                A1Element.innerHTML = "<strong>卒業まであと</strong>"+ A1Value +"<strong>時間</strong> " ;
+                A1Element.innerHTML = "<strong>　</strong>"+ A1Value +"<strong>　</strong> " ;
             }
         } catch (error) {
             console.error("データ取得に失敗しました:", error);
@@ -238,7 +238,7 @@
 
         function getAdjustedTime() {
             const now = new Date();
-            now.setSeconds(now.getSeconds() + 7); // 6秒を加算
+            now.setSeconds(now.getSeconds() + 7); // 7秒を加算
             return now;
         }
 
