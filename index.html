@@ -1,319 +1,411 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>時間割トラッカー</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7fa;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            color: #333;
-        }
-        .tab {
-            display: flex;
-            justify-content: center;
-            margin-top: 20px;
-        }
-        .tab button {
-            padding: 12px 20px;
-            border-radius: 10px;
-            border: 1px solid #ddd;
-            background-color: #fff;
-            margin: 0 10px;
-            font-size: 16px;
-            color: #555;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .tab button:hover {
-            background-color: #f0f0f0;
-        }
-        .tab button.active {
-            background-color: #007bff;
-            color: #fff;
-            font-weight: bold;
-            transform: scale(1.1);
-        }
-        .tab button:active {
-            background-color: #0056b3;
-            transform: scale(0.98);
-        }
-        .content {
-            display: none;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            margin-top: 20px;
-        }
-        .content.active {
-            display: block;
-        }
-        .schedule-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        .schedule-table th, .schedule-table td {
-            padding: 12px;
-            border: 1px solid #ddd;
-            text-align: center;
-        }
-        .schedule-table th {
-            background-color: #f1f1f1;
-            font-weight: bold;
-        }
-        .schedule-table td {
-            background-color: #fff;
-        }
-        .footer {
-            text-align: center;
-            margin-top: 30px;
-            font-size: 14px;
-            color: #777;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>時間割トラッカー</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f7fa;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #333;
+    }
+    .tab {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .tab button {
+      padding: 12px 20px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      background-color: #fff;
+      margin: 0 10px;
+      font-size: 16px;
+      color: #555;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .tab button:hover {
+      background-color: #f0f0f0;
+    }
+    .tab button.active {
+      background-color: #007bff;
+      color: #fff;
+      font-weight: bold;
+      transform: scale(1.1);
+    }
+    .tab button:active {
+      background-color: #0056b3;
+      transform: scale(0.98);
+    }
+    .content {
+      display: none;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      margin-top: 20px;
+    }
+    .content.active {
+      display: block;
+    }
+    .schedule-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    .schedule-table th, .schedule-table td {
+      padding: 12px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+    .schedule-table th {
+      background-color: #f1f1f1;
+      font-weight: bold;
+    }
+    .schedule-table td {
+      background-color: #fff;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      font-size: 14px;
+      color: #777;
+    }
+    /* Navigation styles for schedule */
+    #navigation {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 20px;
+    }
+    #navigation button {
+      font-size: 20px;
+      padding: 10px;
+      margin: 0 20px;
+      cursor: pointer;
+    }
+    #displayed-day {
+      font-size: 18px;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>時間割トラッカー</h1>
-            <p>※クラブ/委員会はまだ非対応</p>
-            <p style="color: gray; font-size: small;">デザインアップデートが適応されました。</p>
-            <p>
-                <a href="https://neko715.github.io/keisan/" target="_blank">残り時間を変更</a>
-            </p>
-        </div>
-        <div class="tab">
-            <button class="tab-button active" data-target="normal">通常日課</button>
-            <button class="tab-button" data-target="short-no-lunch">短縮４時間日課（給食なし）</button>
-            <button class="tab-button" data-target="short-with-lunch">短縮４時間日課（給食あり）</button>
-        </div>
-        <div id="normal" class="content active">
-            <h2>通常日課</h2><p>月曜日の朝に更新してください<p>
-            <p id="normal-status"></p>
-        </div>
-        <div id="short-no-lunch" class="content">
-            <h2>短縮４時間日課（給食なし）</h2><p>月曜日の朝に更新してください<p>
-            <p id="short-no-lunch-status"></p>
-        </div>
-        <div id="short-with-lunch" class="content">
-            <h2>短縮４時間日課（給食あり）</h2><p>月曜日の朝に更新してください<p>
-            <p id="short-with-lunch-status"></p>
-        </div>
-        <div id="schedule-container">
-            <h2>今日の時間割</h2>
-            <table id="today-schedule" class="schedule-table">
-                <thead>
-                    <tr>
-                        <th>時間</th>
-                        <th>授業内容</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
-        <div class="footer">
-            <p></p>
-        </div>
+  <div class="container">
+    <div class="header">
+      <h1>時間割トラッカー</h1>
+      <p>※クラブ/委員会はまだ非対応</p>
+      <p style="color: gray; font-size: small;">デザインアップデートが適応されました。</p>
+      <p>
+        <a href="https://neko715.github.io/keisan/" target="_blank">残り時間を変更</a>
+      </p>
     </div>
-    <script>
+    <div class="tab">
+      <button class="tab-button active" data-target="normal">通常日課</button>
+      <button class="tab-button" data-target="short-no-lunch">短縮４時間日課（給食なし）</button>
+      <button class="tab-button" data-target="short-with-lunch">短縮４時間日課（給食あり）</button>
+    </div>
+    <div id="normal" class="content active">
+      <h2>通常日課</h2>
+      <p>月曜日の朝に更新してください</p>
+      <p id="normal-status"></p>
+    </div>
+    <div id="short-no-lunch" class="content">
+      <h2>短縮４時間日課（給食なし）</h2>
+      <p>月曜日の朝に更新してください</p>
+      <p id="short-no-lunch-status"></p>
+    </div>
+    <div id="short-with-lunch" class="content">
+      <h2>短縮４時間日課（給食あり）</h2>
+      <p>月曜日の朝に更新してください</p>
+      <p id="short-with-lunch-status"></p>
+    </div>
+    <div id="schedule-container">
+      <!-- ヘッダー部分をフレックスボックスで左右に配置 -->
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2>今日の時間割</h2>
+        <div id="current-datetime" style="font-size: 16px;"></div>
+      </div>
+      <table id="today-schedule" class="schedule-table">
+        <thead>
+          <tr>
+            <th>時間</th>
+            <th>授業内容</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div id="navigation">
+        <button id="prev-day">&#8592;</button>
+        <span id="displayed-day">月曜日</span>
+        <button id="next-day">&#8594;</button>
+      </div>
+    </div>
+    <div class="footer">
+      <p></p>
+    </div>
+  </div>
+  <script>
     async function fetchSpreadsheetData() {
-        const sheetId = "1hohrA09f_BWT3lh2owfHu3npx33PBEpDXA2bpAlZB6U"; // あなたのスプレッドシートID
-        const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
+      const sheetId = "1hohrA09f_BWT3lh2owfHu3npx33PBEpDXA2bpAlZB6U"; // あなたのスプレッドシートID
+      const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
 
-        try {
-            const response = await fetch(url);
-            const text = await response.text();
-            const jsonText = text.substring(47, text.length - 2); // GoogleのJSONレスポンスの余計な部分を削除
-            const jsonData = JSON.parse(jsonText);
-            const A1Value = jsonData.table.rows[0].c[0].v; // A1の値を取得
+      try {
+        const response = await fetch(url);
+        const text = await response.text();
+        const jsonText = text.substring(47, text.length - 2); // GoogleのJSONレスポンスの余計な部分を削除
+        const jsonData = JSON.parse(jsonText);
+        const A1Value = jsonData.table.rows[0].c[0].v; // A1の値を取得
 
-            // A1の値を更新
-            const A1Element = document.getElementById("A1Value");
-            if (!A1Element) {
-                const newA1Element = document.createElement("p");
-                newA1Element.id = "A1Value";
-                newA1Element.innerHTML = "<strong>計算中...</strong> ";
-                document.querySelector(".header").appendChild(newA1Element);
-            } else {
-                A1Element.innerHTML = "<strong>　</strong>"+ A1Value +"<strong>　</strong> " ;
-            }
-        } catch (error) {
-            console.error("データ取得に失敗しました:", error);
+        // A1の値を更新
+        const A1Element = document.getElementById("A1Value");
+        if (!A1Element) {
+          const newA1Element = document.createElement("p");
+          newA1Element.id = "A1Value";
+          newA1Element.innerHTML = "<strong>計算中...</strong> ";
+          document.querySelector(".header").appendChild(newA1Element);
+        } else {
+          A1Element.innerHTML = "<strong>　</strong>" + A1Value + "<strong>　</strong> ";
         }
+      } catch (error) {
+        console.error("データ取得に失敗しました:", error);
+      }
     }
 
     setInterval(fetchSpreadsheetData, 1000); // 1秒ごとに更新
-        const tables = {
-            normal: [
-                { period: '朝の会', start: '8:10', end: '8:20' },
-                { period: 'スキル・読書', start: '8:20', end: '8:35' },
-                { period: '1時間目', start: '8:40', end: '9:25' },
-                { period: '2時間目', start: '9:30', end: '10:15' },
-                { period: '業間休み', start: '10:15', end: '10:30' },
-                { period: '3時間目', start: '10:35', end: '11:20' },
-                { period: '4時間目', start: '11:25', end: '12:10' },
-                { period: '昼食', start: '12:10', end: '12:55' },
-                { period: '昼休み', start: '12:55', end: '13:15' },
-                { period: '5時間目', start: '13:40', end: '14:25' },
-                { period: '6時間目', start: '14:30', end: '15:15' },
-            ],
-            'short-no-lunch': [
-                { period: '朝の会', start: '8:10', end: '8:20' },
-                { period: '1時間目', start: '8:25', end: '9:10' },
-                { period: '2時間目', start: '9:15', end: '10:00' },
-                { period: '業間休み', start: '10:00', end: '10:05' },
-                { period: '3時間目', start: '10:10', end: '10:55' },
-                { period: '4時間目', start: '11:00', end: '11:55' },
-            ],
-            'short-with-lunch': [
-                { period: '朝の会', start: '8:10', end: '8:20' },
-                { period: 'スキル・読書', start: '8:20', end: '8:35' },
-                { period: '1時間目', start: '8:40', end: '9:25' },
-                { period: '2時間目', start: '9:30', end: '10:15' },
-                { period: '業間休み', start: '10:15', end: '10:20' },
-                { period: '3時間目', start: '10:25', end: '11:10' },
-                { period: '4時間目', start: '11:15', end: '12:00' },
-                { period: '昼食', start: '12:00', end: '12:45' },
-            ],
-        };
 
-        const weeklySchedule = {
-            月曜日: [
-                " 算数　自学",
-                " 図工　卒業制作　やすりがけ",
-                " 図工　卒業制作　ニス塗り",
-                " 社会　新しい日本　平和な日本へ",
-                " 新しい日本に　龍馬の心",
-                " なし",
-            ],
-            火曜日: [
-                " 算数　自学",
-                " 書写",
-                " 学活　生活アンケート",
-                " 社会　新しい日本　平和な日本へ",
-                " 総合　未来へのパスポート",
-                " 音楽　送る会練習⑤",
-            ],
-            水曜日: [
-                " 英語　MyFuture,mydream.",
-                " 国語　漢字のまとめ(テスト) 上7~下117",
-                " 国語　日本語の文字　特徴について",
-                " 音楽　送る会練習⑥",
-                " 社会　新しい日本　平和な日本へ",
-                " クラブ　最終",
-            ],
-            木曜日: [
-                " 理科　地球に生きる",
-                " 理科　地球に生きる",
-                " 理科/社会　地球に生きる→長く続いた戦争と人々の暮らし　新しい日本　平和な日本へ(テスト)",
-                " 国語　日本語の文字",
-                " 社会　アメリカについて",
-                " 音楽　送る会練習⑦",
-            ],
-            金曜日: [
-                " 理科　地球に生きる",
-                " 児童会　送る会　9:25〜入場",
-                " 児童会　送る会",
-                " 社会　アメリカについて",
-                " 家庭",
-                " 図書　図書室→日本語の文字",
-            ],
-        };
+    const tables = {
+      normal: [
+        { period: '朝の会', start: '8:10', end: '8:20' },
+        { period: 'スキル・読書', start: '8:20', end: '8:35' },
+        { period: '1時間目', start: '8:40', end: '9:25' },
+        { period: '2時間目', start: '9:30', end: '10:15' },
+        { period: '業間休み', start: '10:15', end: '10:30' },
+        { period: '3時間目', start: '10:35', end: '11:20' },
+        { period: '4時間目', start: '11:25', end: '12:10' },
+        { period: '昼食', start: '12:10', end: '12:55' },
+        { period: '昼休み', start: '12:55', end: '13:15' },
+        { period: '5時間目', start: '13:40', end: '14:25' },
+        { period: '6時間目', start: '14:30', end: '15:15' },
+      ],
+      'short-no-lunch': [
+        { period: '朝の会', start: '8:10', end: '8:20' },
+        { period: '1時間目', start: '8:25', end: '9:10' },
+        { period: '2時間目', start: '9:15', end: '10:00' },
+        { period: '業間休み', start: '10:00', end: '10:05' },
+        { period: '3時間目', start: '10:10', end: '10:55' },
+        { period: '4時間目', start: '11:00', end: '11:55' },
+      ],
+      'short-with-lunch': [
+        { period: '朝の会', start: '8:10', end: '8:20' },
+        { period: 'スキル・読書', start: '8:20', end: '8:35' },
+        { period: '1時間目', start: '8:40', end: '9:25' },
+        { period: '2時間目', start: '9:30', end: '10:15' },
+        { period: '業間休み', start: '10:15', end: '10:20' },
+        { period: '3時間目', start: '10:25', end: '11:10' },
+        { period: '4時間目', start: '11:15', end: '12:00' },
+        { period: '昼食', start: '12:00', end: '12:45' },
+      ],
+    };
 
-        let currentScheduleType = 'normal';
+    const weeklySchedule = {
+      月曜日: [
+        " 算数　自学",
+        " 図工　卒業制作　やすりがけ",
+        " 図工　卒業制作　ニス塗り",
+        " 社会　新しい日本　平和な日本へ",
+        " 新しい日本に　龍馬の心",
+        " なし",
+      ],
+      火曜日: [
+        " 算数　自学",
+        " 書写",
+        " 学活　生活アンケート",
+        " 社会　新しい日本　平和な日本へ",
+        " 総合　未来へのパスポート",
+        " 音楽　送る会練習⑤",
+      ],
+      水曜日: [
+        " 英語　MyFuture,mydream.",
+        " 国語　漢字のまとめ(テスト) 上7~下117",
+        " 国語　日本語の文字　特徴について",
+        " 音楽　送る会練習⑥",
+        " 社会　新しい日本　平和な日本へ",
+        " クラブ　最終",
+      ],
+      木曜日: [
+        " 理科　地球に生きる",
+        " 理科　地球に生きる",
+        "理科/社会　地球に生きる→長く続いた戦争と人々の暮らし　新しい日本　平和な日本へ(テスト)",
+        " 国語　日本語の文字",
+        " 社会　アメリカについて",
+        " 音楽　送る会練習⑦",
+      ],
+      金曜日: [
+        " 理科　地球に生きる",
+        " 児童会　送る会　9:25〜入場",
+        " 児童会　送る会",
+        " 社会　アメリカについて",
+        " 家庭",
+        " 図書　図書室→日本語の文字",
+      ],
+    };
 
-        function getAdjustedTime() {
-            const now = new Date();
-            now.setSeconds(now.getSeconds() + 7); // 7秒を加算
-            return now;
-        }
+    const navDays = ['月曜日', '火曜日', '水曜日', '木曜日', '金曜日'];
+    let selectedDayIndex;
+    let manualMode = false;
+    {
+      const today = new Date().getDay();
+      if (today >= 1 && today <= 5) {
+        selectedDayIndex = today - 1;
+      } else {
+        selectedDayIndex = 0;
+      }
+    }
 
-        function parseTime(time) {
-            const [hours, minutes] = time.split(':').map(Number);
-            const now = getAdjustedTime();
-            return new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
-        }
+    let currentScheduleType = 'normal';
 
-        function updateTime() {
-            const now = getAdjustedTime();
-            const currentPeriod = tables[currentScheduleType].find(period => {
-                const periodStartTime = parseTime(period.start);
-                const periodEndTime = parseTime(period.end);
-                return now >= periodStartTime && now <= periodEndTime;
-            });
-            const statusElement = document.getElementById(`${currentScheduleType}-status`);
-            if (currentPeriod) {
-                const periodStartTime = parseTime(currentPeriod.start);
-                const periodEndTime = parseTime(currentPeriod.end);
-                const elapsedTime = now - periodStartTime; // 経過時間
-                const remainingTime = periodEndTime - now; // 残り時間
-                const minutesElapsed = Math.floor(elapsedTime / 60000);
-                const secondsElapsed = Math.floor((elapsedTime % 60000) / 1000);
-                const minutesRemaining = Math.floor(remainingTime / 60000);
-                const secondsRemaining = Math.floor((remainingTime % 60000) / 1000);
-                statusElement.innerHTML = `${currentPeriod.period} - 残り時間: ${minutesRemaining}分 ${secondsRemaining}秒 <br> 経過時間: ${minutesElapsed}分 ${secondsElapsed}秒`;
-            } else {
-                // 休み時間で次の授業までの残り時間を表示
-                const nextPeriod = tables[currentScheduleType].find(period => {
-                    const periodStartTime = parseTime(period.start);
-                    return now < periodStartTime;
-                });
-                if (nextPeriod) {
-                    const nextPeriodStartTime = parseTime(nextPeriod.start);
-                    const nextPeriodRemainingTime = nextPeriodStartTime - now;
-                    const secondsRemainingForNext = Math.floor(nextPeriodRemainingTime / 1000);
-                    const minutesRemainingForNext = Math.floor(secondsRemainingForNext / 60);
-                    const secondsRemaining = secondsRemainingForNext % 60;
-                    statusElement.innerHTML = `開始まで残り ${minutesRemainingForNext}分 ${secondsRemaining}秒`;
-                }
-            }
-        }
+    function getAdjustedTime() {
+      const now = new Date();
+      now.setSeconds(now.getSeconds() + 7); // 7秒を加算
+      return now;
+    }
 
-        function updateTodaySchedule() {
-            const now = new Date();
-            const dayOfWeek = now.getDay();
-            const days = ['日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日'];
-            const schedule = weeklySchedule[days[dayOfWeek]];
-            const tbody = document.getElementById('today-schedule').getElementsByTagName('tbody')[0];
-            tbody.innerHTML = '';
-            schedule.forEach((period, index) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `<td>${index + 1}時間目</td><td>${period}</td>`;
-                tbody.appendChild(row);
-            });
-        }
+    function parseTime(time) {
+      const [hours, minutes] = time.split(':').map(Number);
+      const now = getAdjustedTime();
+      return new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
+    }
 
-        function changeTab(tab) {
-            document.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
-            tab.classList.add('active');
-            document.querySelectorAll('.content').forEach(content => content.classList.remove('active'));
-            const target = document.getElementById(tab.getAttribute('data-target'));
-            target.classList.add('active');
-            currentScheduleType = tab.getAttribute('data-target');
-            updateTime();
-        }
-
-        document.querySelectorAll('.tab-button').forEach(button => {
-            button.addEventListener('click', () => changeTab(button));
+    function updateTime() {
+      const now = getAdjustedTime();
+      const currentPeriod = tables[currentScheduleType].find(period => {
+        const periodStartTime = parseTime(period.start);
+        const periodEndTime = parseTime(period.end);
+        return now >= periodStartTime && now <= periodEndTime;
+      });
+      const statusElement = document.getElementById(`${currentScheduleType}-status`);
+      if (currentPeriod) {
+        const periodStartTime = parseTime(currentPeriod.start);
+        const periodEndTime = parseTime(currentPeriod.end);
+        const elapsedTime = now - periodStartTime; // 経過時間
+        const remainingTime = periodEndTime - now; // 残り時間
+        const minutesElapsed = Math.floor(elapsedTime / 60000);
+        const secondsElapsed = Math.floor((elapsedTime % 60000) / 1000);
+        const minutesRemaining = Math.floor(remainingTime / 60000);
+        const secondsRemaining = Math.floor((remainingTime % 60000) / 1000);
+        statusElement.innerHTML = `${currentPeriod.period} - 残り時間: ${minutesRemaining}分 ${secondsRemaining}秒 <br> 経過時間: ${minutesElapsed}分 ${secondsElapsed}秒`;
+      } else {
+        // 休み時間で次の授業までの残り時間を表示
+        const nextPeriod = tables[currentScheduleType].find(period => {
+          const periodStartTime = parseTime(period.start);
+          return now < periodStartTime;
         });
+        if (nextPeriod) {
+          const nextPeriodStartTime = parseTime(nextPeriod.start);
+          const nextPeriodRemainingTime = nextPeriodStartTime - now;
+          const secondsRemainingForNext = Math.floor(nextPeriodRemainingTime / 1000);
+          const minutesRemainingForNext = Math.floor(secondsRemainingForNext / 60);
+          const secondsRemaining = secondsRemainingForNext % 60;
+          statusElement.innerHTML = `開始まで残り ${minutesRemainingForNext}分 ${secondsRemaining}秒`;
+        }
+      }
+    }
 
-        setInterval(updateTime, 1000);  // 1秒ごとに時間を更新
-        setInterval(updateTodaySchedule, 1000);  // 1秒ごとに今日の時間割を更新
+    function updateTodaySchedule() {
+      let dayName;
+      if (manualMode) {
+        dayName = navDays[selectedDayIndex];
+      } else {
+        const now = new Date();
+        const systemDay = now.getDay();
+        if (systemDay >= 1 && systemDay <= 5) {
+          dayName = navDays[systemDay - 1];
+        } else {
+          dayName = navDays[0];
+        }
+      }
+      const schedule = weeklySchedule[dayName];
+      const tbody = document.getElementById('today-schedule').getElementsByTagName('tbody')[0];
+      tbody.innerHTML = '';
+      schedule.forEach((period, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${index + 1}時間目</td><td>${period}</td>`;
+        tbody.appendChild(row);
+      });
+      const displayedDay = document.getElementById('displayed-day');
+      if (displayedDay) {
+        displayedDay.textContent = dayName;
+      }
+    }
 
-    </script>
+    function changeTab(tab) {
+      document.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
+      tab.classList.add('active');
+      document.querySelectorAll('.content').forEach(content => content.classList.remove('active'));
+      const target = document.getElementById(tab.getAttribute('data-target'));
+      target.classList.add('active');
+      currentScheduleType = tab.getAttribute('data-target');
+      updateTime();
+    }
+
+    document.querySelectorAll('.tab-button').forEach(button => {
+      button.addEventListener('click', () => changeTab(button));
+    });
+
+    setInterval(updateTime, 1000);  // 1秒ごとに時間を更新
+    setInterval(updateTodaySchedule, 1000);  // 1秒ごとに今日の時間割を更新
+
+    document.getElementById('prev-day').addEventListener('click', () => {
+      manualMode = true;
+      selectedDayIndex--;
+      if (selectedDayIndex < 0) {
+        selectedDayIndex = navDays.length - 1;
+      }
+      updateTodaySchedule();
+    });
+
+    document.getElementById('next-day').addEventListener('click', () => {
+      manualMode = true;
+      selectedDayIndex++;
+      if (selectedDayIndex >= navDays.length) {
+        selectedDayIndex = 0;
+      }
+      updateTodaySchedule();
+    });
+
+    // 新たに追加：現在の日付・曜日・時間(hh:mm:ss)を更新する関数
+    function updateDateTime() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+      const weekday = weekdays[now.getDay()];
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      const datetimeStr = `${year}/${month}/${day} (${weekday}) ${hours}:${minutes}:${seconds}`;
+      const dtElement = document.getElementById("current-datetime");
+      if (dtElement) {
+        dtElement.innerText = datetimeStr;
+      }
+    }
+    setInterval(updateDateTime, 1000);
+    updateDateTime(); // 初回実行
+  </script>
 </body>
 </html>
