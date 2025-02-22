@@ -11,6 +11,16 @@
       margin: 0;
       padding: 0;
     }
+    /* Fixed real-time clock at the top left of the device */
+    #current-datetime {
+      position: fixed;
+      top: 0;
+      left: 0;
+      padding: 10px;
+      background-color: rgba(255, 255, 255, 0.9);
+      z-index: 1000;
+      font-size: 16px;
+    }
     .container {
       max-width: 1100px;
       margin: 0 auto;
@@ -104,6 +114,8 @@
   </style>
 </head>
 <body>
+  <!-- Fixed real-time clock at the top left -->
+  <div id="current-datetime"></div>
   <div class="container">
     <div class="header">
       <h1>時間割トラッカー</h1>
@@ -136,7 +148,7 @@
       <!-- ヘッダー部分をフレックスボックスで左右に配置 -->
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <h2>今日の時間割</h2>
-        <div id="current-datetime" style="font-size: 16px;"></div>
+        <!-- リアルタイム時刻表示は削除済み -->
       </div>
       <table id="today-schedule" class="schedule-table">
         <thead>
@@ -386,7 +398,7 @@
       updateTodaySchedule();
     });
 
-    // 新たに追加：現在の日付・曜日・時間(hh:mm:ss)を更新する関数
+    // 現在の日付・曜日・時間(hh:mm:ss)を更新する関数
     function updateDateTime() {
       const now = new Date();
       const year = now.getFullYear();
