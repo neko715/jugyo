@@ -397,7 +397,7 @@
       const hours = String(now.getHours()).padStart(2, '0');
       const minutes = String(now.getMinutes()).padStart(2, '0');
       const seconds = String(now.getSeconds()).padStart(2, '0');
-      const datetimeStr = `${year}/${month}/${day} (${weekday}) ${hours}:${minutes}:${seconds}`;
+      const datetimeStr = ` ${hours}:${minutes}:${seconds}`;
       const dtElement = document.getElementById("current-datetime");
       if (dtElement) {
         dtElement.innerText = datetimeStr;
