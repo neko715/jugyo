@@ -21,6 +21,16 @@
       z-index: 1000;
       font-size: 16px;
     }
+    /* New style for lunch display */
+    #current-lunch {
+      position: fixed;
+      top: 40px;
+      left: 0;
+      padding: 10px;
+      background-color: rgba(255, 255, 255, 0.9);
+      z-index: 1000;
+      font-size: 16px;
+    }
     .container {
       max-width: 1100px;
       margin: 0 auto;
@@ -116,6 +126,7 @@
 <body>
   <!-- Fixed real-time clock at the top left -->
   <div id="current-datetime"></div>
+  <div id="current-lunch"></div>
   <div class="container">
     <div class="header">
       <h1>時間割トラッカー</h1>
@@ -124,6 +135,7 @@
         <a href="https://neko715.github.io/keisan/" target="_blank">設定を変更</a>
       </p>
     </div>
+    <!-- 給食登録フォームは削除し、コード内で登録 -->
     <div class="tab">
       <button class="tab-button active" data-target="normal">通常日課</button>
       <button class="tab-button" data-target="short-no-lunch">短縮４時間日課（給食なし）</button>
@@ -173,14 +185,14 @@
     async function fetchSpreadsheetData() {
       const sheetId = "1hohrA09f_BWT3lh2owfHu3npx33PBEpDXA2bpAlZB6U"; // あなたのスプレッドシートID
       const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
-
+    
       try {
         const response = await fetch(url);
         const text = await response.text();
         const jsonText = text.substring(47, text.length - 2); // GoogleのJSONレスポンスの余計な部分を削除
         const jsonData = JSON.parse(jsonText);
         const A1Value = jsonData.table.rows[0].c[0].v; // A1の値を取得
-
+    
         // A1の値を更新
         const A1Element = document.getElementById("A1Value");
         if (!A1Element) {
@@ -195,9 +207,9 @@
         console.error("データ取得に失敗しました:", error);
       }
     }
-
+    
     setInterval(fetchSpreadsheetData, 1000); // 1秒ごとに更新
-
+    
     const tables = {
       normal: [
         { period: '朝の会', start: '8:10', end: '8:20' },
@@ -231,7 +243,7 @@
         { period: '昼食', start: '12:00', end: '12:45' },
       ],
     };
-
+    
     const weeklySchedule = {
       月曜日: [
         " 天",
@@ -274,7 +286,7 @@
         " 社会　フランスについて　P78~P83",
       ],
     };
-
+    
     const navDays = ['月曜日', '火曜日', '水曜日', '木曜日', '金曜日'];
     let selectedDayIndex;
     let manualMode = false;
@@ -286,21 +298,46 @@
         selectedDayIndex = 0;
       }
     }
-
+    
     let currentScheduleType = 'normal';
-
+    
     function getAdjustedTime() {
       const now = new Date();
       now.setSeconds(now.getSeconds() + 7); // 7秒を加算
       return now;
     }
-
+    
     function parseTime(time) {
       const [hours, minutes] = time.split(':').map(Number);
       const now = getAdjustedTime();
       return new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
     }
-
+    
+    function getDisplayedDay() {
+      if (manualMode) {
+        return navDays[selectedDayIndex];
+      } else {
+        const now = new Date();
+        const systemDay = now.getDay();
+        if(systemDay >= 1 && systemDay <= 5) {
+          return navDays[systemDay - 1];
+        } else {
+          return navDays[0];
+        }
+      }
+    }
+    
+    // 新たに実際の今日の曜日を取得する関数
+    function getTodayDayName() {
+      const now = new Date();
+      const systemDay = now.getDay();
+      if(systemDay >= 1 && systemDay <= 5) {
+        return navDays[systemDay - 1];
+      } else {
+        return navDays[0];
+      }
+    }
+    
     function updateTime() {
       const now = getAdjustedTime();
       const currentPeriod = tables[currentScheduleType].find(period => {
@@ -335,20 +372,9 @@
         }
       }
     }
-
+    
     function updateTodaySchedule() {
-      let dayName;
-      if (manualMode) {
-        dayName = navDays[selectedDayIndex];
-      } else {
-        const now = new Date();
-        const systemDay = now.getDay();
-        if (systemDay >= 1 && systemDay <= 5) {
-          dayName = navDays[systemDay - 1];
-        } else {
-          dayName = navDays[0];
-        }
-      }
+      let dayName = getDisplayedDay();
       const schedule = weeklySchedule[dayName];
       const tbody = document.getElementById('today-schedule').getElementsByTagName('tbody')[0];
       tbody.innerHTML = '';
@@ -362,7 +388,22 @@
         displayedDay.textContent = dayName;
       }
     }
-
+    
+    // 給食表示を更新。選択中の曜日と実際の今日の曜日でメッセージを変更する
+    function updateLunchDisplay() {
+      let displayedDay = getDisplayedDay();
+      let todayDay = getTodayDayName();
+      const lunch = lunchSchedule[displayedDay] || "未登録";
+      const lunchElement = document.getElementById("current-lunch");
+      if(lunchElement) {
+        if(displayedDay === todayDay) {
+          lunchElement.innerText = "今日の給食: " + lunch;
+        } else {
+          lunchElement.innerText = displayedDay + "の給食: " + lunch;
+        }
+      }
+    }
+    
     function changeTab(tab) {
       document.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
       tab.classList.add('active');
@@ -372,14 +413,15 @@
       currentScheduleType = tab.getAttribute('data-target');
       updateTime();
     }
-
+    
     document.querySelectorAll('.tab-button').forEach(button => {
       button.addEventListener('click', () => changeTab(button));
     });
-
+    
     setInterval(updateTime, 1000);  // 1秒ごとに時間を更新
     setInterval(updateTodaySchedule, 1000);  // 1秒ごとに今日の時間割を更新
-
+    setInterval(updateLunchDisplay, 1000);  // 1秒ごとに給食表示を更新
+    
     document.getElementById('prev-day').addEventListener('click', () => {
       manualMode = true;
       selectedDayIndex--;
@@ -387,8 +429,9 @@
         selectedDayIndex = navDays.length - 1;
       }
       updateTodaySchedule();
+      updateLunchDisplay();
     });
-
+    
     document.getElementById('next-day').addEventListener('click', () => {
       manualMode = true;
       selectedDayIndex++;
@@ -396,8 +439,9 @@
         selectedDayIndex = 0;
       }
       updateTodaySchedule();
+      updateLunchDisplay();
     });
-
+    
     // 現在の日付・曜日・時間(hh:mm:ss)を更新する関数
     function updateDateTime() {
       const now = new Date();
@@ -409,7 +453,7 @@
       const hours = String(now.getHours()).padStart(2, '0');
       const minutes = String(now.getMinutes()).padStart(2, '0');
       const seconds = String(now.getSeconds()).padStart(2, '0');
-      const datetimeStr = ` ${hours}:${minutes}:${seconds}`;
+      const datetimeStr = `${hours}:${minutes}:${seconds}`;
       const dtElement = document.getElementById("current-datetime");
       if (dtElement) {
         dtElement.innerText = datetimeStr;
@@ -417,6 +461,17 @@
     }
     setInterval(updateDateTime, 1000);
     updateDateTime(); // 初回実行
+    
+    // 給食の登録（コード内で登録）
+    const lunchSchedule = {
+      "月曜日": "なし",
+      "火曜日": "ご飯 鶏の唐揚げ 磯香和え けんちん汁 みかん",
+      "水曜日": "コッペパン 鮭とほうれん草のグラタン スパゲティサラダ レンズ豆のスープ",
+      "木曜日": "ねぎ塩豚丼 茎若布の五色和え かぶと生揚げの味噌汁",
+      "金曜日": "生揚げの中華煮 粉ふき芋 ノリと剥製の中華和え"
+    };
+    
+    updateLunchDisplay();
   </script>
 </body>
 </html>
