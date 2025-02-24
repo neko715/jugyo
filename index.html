@@ -30,6 +30,7 @@
       background-color: rgba(255, 255, 255, 0.9);
       z-index: 1000;
       font-size: 16px;
+      /* ここは変更せず、JS側でタップ時の切替を実現 */
     }
     .container {
       max-width: 1100px;
@@ -396,10 +397,14 @@
       const lunch = lunchSchedule[displayedDay] || "未登録";
       const lunchElement = document.getElementById("current-lunch");
       if(lunchElement) {
+        if (!lunchVisible) {
+          lunchElement.innerText = "給食 (タップして表示)";
+          return;
+        }
         if(displayedDay === todayDay) {
-          lunchElement.innerText = "今日の給食: " + lunch;
+          lunchElement.innerHTML = "今日の給食: " + lunch + "<br>(タップで閉じる)";
         } else {
-          lunchElement.innerText = displayedDay + "の給食: " + lunch;
+          lunchElement.innerHTML = displayedDay + "の給食: " + lunch + "<br>(タップで閉じる)";
         }
       }
     }
@@ -462,6 +467,9 @@
     setInterval(updateDateTime, 1000);
     updateDateTime(); // 初回実行
     
+    // ここから給食表示のための変更
+    let lunchVisible = true;
+    
     // 給食の登録（コード内で登録）
     const lunchSchedule = {
       "月曜日": "なし",
@@ -472,6 +480,11 @@
     };
     
     updateLunchDisplay();
+    
+    document.getElementById("current-lunch").addEventListener("click", function() {
+      lunchVisible = !lunchVisible;
+      updateLunchDisplay();
+    });
   </script>
 </body>
 </html>
