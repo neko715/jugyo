@@ -21,11 +21,11 @@
       z-index: 1000;
       font-size: 16px;
     }
-    /* New style for lunch display */
+    /* Modified style for lunch display:
+       left プロパティは JavaScript で動的に設定するため削除 */
     #current-lunch {
       position: fixed;
-      top: 40px;
-      left: 0;
+      top: 0; /* もともとは top:40px だったのを 0 に変更 */
       padding: 10px;
       background-color: rgba(255, 255, 255, 0.9);
       z-index: 1000;
@@ -132,7 +132,7 @@
     <div class="header">
       <h1>時間割トラッカー</h1>
       <p style="color: gray; font-size: small;">
-  V1.35
+  V1.36
 </p>
       <p>※クラブ/委員会はまだ非対応</p>
       <p>
@@ -405,9 +405,9 @@
           return;
         }
         if(displayedDay === todayDay) {
-          lunchElement.innerHTML = "今日の給食: " + lunch + "<br>(タップで閉じる)";
+          lunchElement.innerHTML = "今日の給食: " + lunch + "(タップで閉じる)";
         } else {
-          lunchElement.innerHTML = displayedDay + "の給食: " + lunch + "<br>(タップで閉じる)";
+          lunchElement.innerHTML = displayedDay + "の給食: " + lunch + "(タップで閉じる)";
         }
       }
     }
@@ -488,6 +488,16 @@
       lunchVisible = !lunchVisible;
       updateLunchDisplay();
     });
+    
+    // 追加: #current-datetime の幅に合わせて #current-lunch の left を動的に調整（隙間をなくす）
+    function updateLunchPosition() {
+      const timeElem = document.getElementById("current-datetime");
+      const lunchElem = document.getElementById("current-lunch");
+      if (timeElem && lunchElem) {
+        lunchElem.style.left = timeElem.offsetWidth + "px";
+      }
+    }
+    setInterval(updateLunchPosition, 1000);
   </script>
 </body>
 </html>
