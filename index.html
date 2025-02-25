@@ -5,11 +5,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>時間割トラッカー</title>
   <style>
+    /* アニメーション定義 */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    @keyframes glow {
+      0% { text-shadow: 0 0 5px rgba(0,0,0,0.2); }
+      50% { text-shadow: 0 0 15px rgba(0,0,0,0.4); }
+      100% { text-shadow: 0 0 5px rgba(0,0,0,0.2); }
+    }
+    @keyframes bounce {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-3px); }
+      100% { transform: translateY(0); }
+    }
+
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: #f4f7fa;
       margin: 0;
       padding: 0;
+      /* ページ全体のフェードイン */
+      animation: fadeInUp 1s ease-out;
     }
     /* Fixed real-time clock at the top left of the device */
     #current-datetime {
@@ -20,27 +44,44 @@
       background-color: rgba(255, 255, 255, 0.9);
       z-index: 1000;
       font-size: 16px;
+      transition: transform 0.3s ease;
+    }
+    #current-datetime:hover {
+      transform: scale(1.05);
     }
     /* Modified style for lunch display:
        left プロパティは JavaScript で動的に設定するため削除 */
     #current-lunch {
       position: fixed;
-      top: 0; /* もともとは top:40px だったのを 0 に変更 */
+      top: 0;
       padding: 10px;
       background-color: rgba(255, 255, 255, 0.9);
       z-index: 1000;
       font-size: 16px;
-      /* ここは変更せず、JS側でタップ時の切替を実現 */
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+    #current-lunch:hover {
+      transform: scale(1.05);
     }
     .container {
       max-width: 1100px;
       margin: 0 auto;
       padding: 20px;
+      /* コンテナが表示されるときのアニメーション */
+      animation: fadeInUp 1s ease-out;
     }
     .header {
       text-align: center;
       margin-bottom: 30px;
       color: #333;
+      animation: fadeInUp 1s ease-out;
+    }
+    /* リンクにホバー時の拡大トランジション */
+    .header a {
+      transition: transform 0.3s ease;
+    }
+    .header a:hover {
+      transform: scale(1.05);
     }
     .tab {
       display: flex;
@@ -81,6 +122,7 @@
     }
     .content.active {
       display: block;
+      animation: fadeInUp 0.5s ease-out;
     }
     .schedule-table {
       width: 100%;
@@ -99,11 +141,20 @@
     .schedule-table td {
       background-color: #fff;
     }
+    /* 更新毎に再生成されるため、テーブル行のアニメーションは削除 */
+    /* .schedule-table tbody tr {
+      animation: fadeInUp 0.5s ease-out;
+    } */
+    /* スケジュール表示エリアには一度だけアニメーションを適用 */
+    #schedule-container {
+      animation: fadeInUp 0.8s ease-out;
+    }
     .footer {
       text-align: center;
       margin-top: 30px;
       font-size: 14px;
       color: #777;
+      animation: fadeInUp 1s ease-out;
     }
     /* Navigation styles for schedule */
     #navigation {
@@ -117,10 +168,19 @@
       padding: 10px;
       margin: 0 20px;
       cursor: pointer;
+      /* ホバー時に軽くバウンスする */
+      transition: transform 0.3s ease;
+    }
+    #navigation button:hover {
+      animation: bounce 0.5s ease;
     }
     #displayed-day {
       font-size: 18px;
       font-weight: bold;
+    }
+    /* スケジュールタイトルにグローアニメーションを追加 */
+    #schedule-title {
+      animation: glow 3s ease-in-out infinite;
     }
   </style>
 </head>
@@ -131,9 +191,7 @@
   <div class="container">
     <div class="header">
       <h1>時間割トラッカー</h1>
-      <p style="color: gray; font-size: small;">
-  V1.36
-</p>
+      <p style="color: gray; font-size: small;">V1.3.7</p>
       <p>※クラブ/委員会はまだ非対応</p>
       <p>
         <a href="https://neko715.github.io/keisan/" target="_blank">設定を変更</a>
@@ -163,8 +221,8 @@
     <div id="schedule-container">
       <!-- ヘッダー部分をフレックスボックスで左右に配置 -->
       <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h2>今日の時間割</h2>
-        <!-- リアルタイム時刻表示は削除済み -->
+        <!-- スケジュールタイトルにidを追加 -->
+        <h2 id="schedule-title">今日の時間割</h2>
       </div>
       <table id="today-schedule" class="schedule-table">
         <thead>
@@ -331,7 +389,7 @@
       }
     }
     
-    // 新たに実際の今日の曜日を取得する関数
+    // 実際の今日の曜日を取得する関数
     function getTodayDayName() {
       const now = new Date();
       const systemDay = now.getDay();
@@ -353,15 +411,14 @@
       if (currentPeriod) {
         const periodStartTime = parseTime(currentPeriod.start);
         const periodEndTime = parseTime(currentPeriod.end);
-        const elapsedTime = now - periodStartTime; // 経過時間
-        const remainingTime = periodEndTime - now; // 残り時間
+        const elapsedTime = now - periodStartTime;
+        const remainingTime = periodEndTime - now;
         const minutesElapsed = Math.floor(elapsedTime / 60000);
         const secondsElapsed = Math.floor((elapsedTime % 60000) / 1000);
         const minutesRemaining = Math.floor(remainingTime / 60000);
         const secondsRemaining = Math.floor((remainingTime % 60000) / 1000);
         statusElement.innerHTML = `${currentPeriod.period} - 残り時間: ${minutesRemaining}分 ${secondsRemaining}秒 <br> 経過時間: ${minutesElapsed}分 ${secondsElapsed}秒`;
       } else {
-        // 休み時間で次の授業までの残り時間を表示
         const nextPeriod = tables[currentScheduleType].find(period => {
           const periodStartTime = parseTime(period.start);
           return now < periodStartTime;
@@ -379,6 +436,16 @@
     
     function updateTodaySchedule() {
       let dayName = getDisplayedDay();
+      const scheduleTitle = document.getElementById('schedule-title');
+      if (scheduleTitle) {
+        // 選択中の曜日が実際の今日と同じ場合は「今日の時間割」と表示
+        if(dayName === getTodayDayName()){
+          scheduleTitle.innerText = "今日の時間割";
+        } else {
+          scheduleTitle.innerText = dayName + "の時間割";
+        }
+      }
+      
       const schedule = weeklySchedule[dayName];
       const tbody = document.getElementById('today-schedule').getElementsByTagName('tbody')[0];
       tbody.innerHTML = '';
@@ -427,7 +494,7 @@
     });
     
     setInterval(updateTime, 1000);  // 1秒ごとに時間を更新
-    setInterval(updateTodaySchedule, 1000);  // 1秒ごとに今日の時間割を更新
+    setInterval(updateTodaySchedule, 1000);  // 1秒ごとに時間割を更新
     setInterval(updateLunchDisplay, 1000);  // 1秒ごとに給食表示を更新
     
     document.getElementById('prev-day').addEventListener('click', () => {
@@ -470,7 +537,7 @@
     setInterval(updateDateTime, 1000);
     updateDateTime(); // 初回実行
     
-    // ここから給食表示のための変更
+    // 給食表示のための設定
     let lunchVisible = true;
     
     // 給食の登録（コード内で登録）
@@ -489,7 +556,7 @@
       updateLunchDisplay();
     });
     
-    // 追加: #current-datetime の幅に合わせて #current-lunch の left を動的に調整（隙間をなくす）
+    // #current-datetime の幅に合わせて #current-lunch の left を動的に調整
     function updateLunchPosition() {
       const timeElem = document.getElementById("current-datetime");
       const lunchElem = document.getElementById("current-lunch");
