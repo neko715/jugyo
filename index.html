@@ -171,15 +171,15 @@
       </div>
       <!-- 給食登録フォームは削除し、コード内で登録 -->
       <div class="tab">
-        <button class="tab-button active" data-target="normal">通常日課</button>
+        <button class="tab-button" data-target="normal">通常日課</button>
         <button class="tab-button" data-target="short-no-lunch">
           短縮４時間日課（給食なし）
         </button>
-        <button class="tab-button" data-target="short-with-lunch">
+        <button class="tab-button active" data-target="short-with-lunch">
           短縮４時間日課（給食あり）
         </button>
       </div>
-      <div id="normal" class="content active">
+      <div id="normal" class="content">
         <h2>通常日課</h2>
         <p>月曜日の朝に更新してください</p>
         <p id="normal-status"></p>
@@ -189,7 +189,7 @@
         <p>月曜日の朝に更新してください</p>
         <p id="short-no-lunch-status"></p>
       </div>
-      <div id="short-with-lunch" class="content">
+      <div id="short-with-lunch" class="content active">
         <h2>短縮４時間日課（給食あり）</h2>
         <p>月曜日の朝に更新してください</p>
         <p id="short-with-lunch-status"></p>
@@ -291,12 +291,12 @@
 
       const weeklySchedule = {
         月曜日: [
-        " 社会　ブラジルについてP84~P91",
-        " ブラジルについてP84~P91",
-        " 総合　卒業式練習8",
-        " 書写　最終",
-        " なし",
-        " なし"
+          " 社会　ブラジルについてP84~P91",
+          " ブラジルについてP84~P91",
+          " 総合　卒業式練習8",
+          " 書写　最終",
+          " なし",
+          " なし"
         ],
         火曜日: [
           " 社会　世界の未来と日本の役割 課題・国際連合について",
@@ -344,7 +344,8 @@
         }
       }
 
-      let currentScheduleType = "normal"
+      // 初期表示を「短縮４時間日課（給食あり）」に変更
+      let currentScheduleType = "short-with-lunch"
 
       function getAdjustedTime() {
         const now = new Date()
