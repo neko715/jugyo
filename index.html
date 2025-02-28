@@ -35,8 +35,7 @@
         z-index: 1000;
         font-size: 16px;
       }
-      /* Modified style for lunch display:
-       left プロパティは JavaScript で動的に設定するため削除 */
+      /* left プロパティは JavaScript で動的に設定するため削除 */
       #current-lunch {
         position: fixed;
         top: 0;
@@ -227,7 +226,7 @@
     </div>
     <script>
       async function fetchSpreadsheetData() {
-        const sheetId = "1hohrA09f_BWT3lh2owfHu3npx33PBEpDXA2bpAlZB6U" // あなたのスプレッドシートID
+        const sheetId = "1hohrA09f_BWT3lh2owfHu3npx33PBEpDXA2bpAlZB6U" // スプレッドシートID
         const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`
 
         try {
@@ -349,7 +348,7 @@
 
       function getAdjustedTime() {
         const now = new Date()
-        now.setSeconds(now.getSeconds() + 7) // 7秒を加算
+        now.setSeconds(now.getSeconds() + 8) // 8秒を加算
         return now
       }
 
