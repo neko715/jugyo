@@ -57,6 +57,7 @@
         color: #333;
         animation: fadeInUp 1s ease-out;
       }
+      /* タブ部分は通常日課のみのため1つに簡略化 */
       .tab {
         display: flex;
         justify-content: center;
@@ -87,16 +88,11 @@
         transform: scale(0.98);
       }
       .content {
-        display: none;
         padding: 20px;
         background-color: #fff;
         border-radius: 10px;
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         margin-top: 20px;
-      }
-      .content.active {
-        display: block;
-        animation: fadeInUp 0.5s ease-out;
       }
       .schedule-table {
         width: 100%;
@@ -116,14 +112,6 @@
       .schedule-table td {
         background-color: #fff;
       }
-      /* 更新毎に再生成されるため、テーブル行のアニメーションは削除 */
-      /* .schedule-table tbody tr {
-      animation: fadeInUp 0.5s ease-out;
-    } */
-      /* 同様に、ナビゲーション部分も更新頻度が高いためアニメーションは外す */
-      /* #navigation button, #displayed-day {
-      animation: fadeInUp 0.5s ease-out;
-    } */
       /* スケジュール表示エリアには一度だけアニメーションを適用 */
       #schedule-container {
         animation: fadeInUp 0.8s ease-out;
@@ -161,37 +149,23 @@
       <div class="header">
         <h1>時間割トラッカー</h1>
         <p style="color: gray; font-size: small">V1.3.8</p>
-        <p>※クラブ/委員会はまだ非対応</p>
+        <p>※短縮日課はそのうち対応</p>
         <p>
           <a href="https://neko715.github.io/keisan/" target="_blank"
             >設定を変更</a
           >
         </p>
+        <!-- A1の値を表示する場所 -->
+        <p id="A1Value"><strong>取得中...</strong></p>
       </div>
-      <!-- 給食登録フォームは削除し、コード内で登録 -->
+      <!-- タブは通常日課のみ表示 -->
       <div class="tab">
-        <button class="tab-button" data-target="normal">通常日課</button>
-        <button class="tab-button" data-target="short-no-lunch">
-          短縮４時間日課（給食なし）
-        </button>
-        <button class="tab-button active" data-target="short-with-lunch">
-          短縮４時間日課（給食あり）
-        </button>
+        <button class="tab-button active" data-target="normal">通常日課</button>
       </div>
       <div id="normal" class="content">
         <h2>通常日課</h2>
         <p>月曜日の朝に更新してください</p>
         <p id="normal-status"></p>
-      </div>
-      <div id="short-no-lunch" class="content">
-        <h2>短縮４時間日課（給食なし）</h2>
-        <p>月曜日の朝に更新してください</p>
-        <p id="short-no-lunch-status"></p>
-      </div>
-      <div id="short-with-lunch" class="content active">
-        <h2>短縮４時間日課（給食あり）</h2>
-        <p>月曜日の朝に更新してください</p>
-        <p id="short-with-lunch-status"></p>
       </div>
       <div id="schedule-container">
         <!-- ヘッダー部分をフレックスボックスで左右に配置 -->
@@ -203,7 +177,8 @@
           "
         >
           <!-- スケジュールタイトルにidを追加 -->
-          <h2 id="schedule-title">今日の時間割</h2><h4>今週の持ち物:紅白帽子　水筒　白衣　上履き<h4>
+          <h2 id="schedule-title">今日の時間割</h2>
+          <h4>今週の持ち物:紅白帽子　水筒　白衣　上履き</h4>
         </div>
         <table id="today-schedule" class="schedule-table">
           <thead>
@@ -256,78 +231,57 @@
 
       const tables = {
         normal: [
-          { period: "朝の会", start: "8:10", end: "8:20" },
-          { period: "スキル・読書", start: "8:20", end: "8:35" },
-          { period: "1時間目", start: "8:40", end: "9:25" },
-          { period: "2時間目", start: "9:30", end: "10:15" },
-          { period: "業間休み", start: "10:15", end: "10:30" },
-          { period: "3時間目", start: "10:35", end: "11:20" },
-          { period: "4時間目", start: "11:25", end: "12:10" },
-          { period: "昼食", start: "12:10", end: "12:55" },
-          { period: "昼休み", start: "12:55", end: "13:15" },
-          { period: "5時間目", start: "13:40", end: "14:25" },
-          { period: "6時間目", start: "14:30", end: "15:15" },
-        ],
-        "short-no-lunch": [
-          { period: "朝の会", start: "8:10", end: "8:20" },
-          { period: "1時間目", start: "8:25", end: "9:10" },
-          { period: "2時間目", start: "9:15", end: "10:00" },
-          { period: "業間休み", start: "10:00", end: "10:05" },
-          { period: "3時間目", start: "10:10", end: "10:55" },
-          { period: "4時間目", start: "11:00", end: "11:55" },
-        ],
-        "short-with-lunch": [
-          { period: "朝の会", start: "8:10", end: "8:20" },
-          { period: "スキル・読書", start: "8:20", end: "8:35" },
-          { period: "1時間目", start: "8:40", end: "9:25" },
-          { period: "2時間目", start: "9:30", end: "10:15" },
-          { period: "業間休み", start: "10:15", end: "10:20" },
-          { period: "3時間目", start: "10:25", end: "11:10" },
-          { period: "4時間目", start: "11:15", end: "12:00" },
-          { period: "昼食", start: "12:00", end: "12:45" },
-        ],
+          { period: "朝の会", start: "8:20", end: "8:30" },
+          { period: "１校時", start: "8:40", end: "9:30" },
+          { period: "２校時", start: "9:40", end: "10:30" },
+          { period: "３校時", start: "10:40", end: "11:30" },
+          { period: "４校時", start: "11:40", end: "12:30" },
+          { period: "昼食", start: "12:30", end: "13:15" },
+          { period: "５校時", start: "13:20", end: "14:10" },
+          { period: "６校時", start: "14:20", end: "15:10" }
+        ]
       }
 
       const weeklySchedule = {
         月曜日: [
-          " 社会　ブラジルについてP84~P91",
-          " ブラジルについてP84~P91",
-          " 総合　卒業式練習8",
-          " 書写　最終",
-          " なし",
-          " なし"
+          "未定",
+          "未定",
+          "未定",
+          "未定",
+          "未定",
+          "未定"
         ],
         火曜日: [
-          " 社会　世界の未来と日本の役割 課題・国際連合について",
-          " 総合　卒業式練習9",
-          " 総合　卒業式練習10",
-          " 津田梅子　出会った言葉を振り返ろう(テスト)",
-          " なし",
-          " なし",
+          "未定",
+          "未定",
+          "未定",
+          "未定",
+          "未定",
+          "未定"
         ],
         水曜日: [
-          " 道徳　大掃除　特別教室",
-          " 道徳　大掃除　特別教室",
-          " 総合　卒業式練習　11",
-          " 社会　背下の未来と日本の役割　世界と日本の努力や協力について",
-          " 児童会　委員会活動　11",
-          " なし",
+          "未定",
+          "未定",
+          "未定",
+          "未定",
+          "未定",
+          "未定"
         ],
         木曜日: [
-          " 国語　出会った言葉を振り返ろう　言葉をまとめる",
-          " 総合　卒業式練習12",
-          " 総合　卒業式練習13",
-          " 社会　未来と日本の役割　国際協力について",
-          " なし",
-          " なし",
+          "未定",
+          "未定",
+          "未定",
+          "未定",
+          "未定",
+          "未定"
         ],
         金曜日: [
-          " 総合　未来へのパスポート",
-          " 総合　卒業式予行練習14",
-          " 卒業式予行練習15",
-          " 出会った言葉を振り返ろう　友達と交流する",
-          " なし",
-          " なし",
+          "未定",
+          "未定",
+          "未定",
+          "未定",
+          "未定",
+          "未定"
         ],
       }
 
@@ -343,8 +297,8 @@
         }
       }
 
-      // 初期表示を「短縮４時間日課（給食あり）」に変更
-      let currentScheduleType = "short-with-lunch"
+      // 初期表示は通常日課のみ使用
+      let currentScheduleType = "normal"
 
       function getAdjustedTime() {
         const now = new Date()
@@ -477,16 +431,12 @@
         }
       }
 
+      // タブの切り替え処理（今回は通常日課のみのため実質的に１つのタブ）
       function changeTab(tab) {
         document
           .querySelectorAll(".tab-button")
           .forEach((button) => button.classList.remove("active"))
         tab.classList.add("active")
-        document
-          .querySelectorAll(".content")
-          .forEach((content) => content.classList.remove("active"))
-        const target = document.getElementById(tab.getAttribute("data-target"))
-        target.classList.add("active")
         currentScheduleType = tab.getAttribute("data-target")
         updateTime()
       }
@@ -544,13 +494,11 @@
 
       // 給食の登録（コード内で登録）
       const lunchSchedule = {
-        月曜日: "五目寿司　鮭の塩焼き　かぶのパリパリ漬け",
-        火曜日: "麦ご飯　ねぎ入り卵焼き　ごま和え　根菜の味噌汁　バナナ",
-        水曜日: "きな粉揚げパン　シーフードサラダ　ポークビーンズ",
-        木曜日:
-          "もち玄米ごはん　レバーと生揚げの中華煮　茎わかめのナムル　花みかん",
-        金曜日:
-          "ポークカレーライス　レンズ豆とチーズのサラダ　サイダー入りフルーツポンチ",
+        月曜日: "未定",
+        火曜日: "未定",
+        水曜日: "未定",
+        木曜日:"未定",
+        金曜日:"未定",
       }
 
       updateLunchDisplay()
