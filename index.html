@@ -7,14 +7,8 @@
     <style>
       /* アニメーション定義 */
       @keyframes fadeInUp {
-        from {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
+        from { opacity: 0; transform: translateY(20px); }
+        to   { opacity: 1; transform: translateY(0); }
       }
 
       body {
@@ -22,21 +16,9 @@
         background-color: #f4f7fa;
         margin: 0;
         padding: 0;
-        /* ページ全体のフェードイン */
         animation: fadeInUp 1s ease-out;
       }
-      /* Fixed real-time clock at the top left of the device */
-      #current-datetime {
-        position: fixed;
-        top: 0;
-        left: 0;
-        padding: 10px;
-        background-color: rgba(255, 255, 255, 0.9);
-        z-index: 1000;
-        font-size: 16px;
-      }
-      /* left プロパティは JavaScript で動的に設定するため削除 */
-      #current-lunch {
+      #current-datetime, #current-lunch {
         position: fixed;
         top: 0;
         padding: 10px;
@@ -44,25 +26,40 @@
         z-index: 1000;
         font-size: 16px;
       }
-      .container {
-        max-width: 1100px;
-        margin: 0 auto;
-        padding: 20px;
-        /* コンテナが表示されるときのアニメーション */
-        animation: fadeInUp 1s ease-out;
-      }
+      #current-lunch { left: 0; }
+      .container { max-width: 1100px; margin: 0 auto; padding: 20px; animation: fadeInUp 1s ease-out; }
       .header {
+        position: relative;
         text-align: center;
         margin-bottom: 30px;
         color: #333;
         animation: fadeInUp 1s ease-out;
       }
-      /* タブ部分は通常日課のみのため1つに簡略化 */
-      .tab {
-        display: flex;
-        justify-content: center;
-        margin-top: 20px;
+      /* 更新通知 */
+      #update-notice {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        text-align: right;
+        display: none; /* デフォルト非表示 */
       }
+      #update-notice p {
+        margin: 0 0 4px;
+        font-size: 14px;
+        color: #d32f2f;
+      }
+      #update-button {
+        padding: 6px 12px;
+        font-size: 14px;
+        border-radius: 6px;
+        border: none;
+        background-color: #ff5722;
+        color: #fff;
+        cursor: pointer;
+      }
+      #update-button:hover { opacity: 0.9; }
+
+      .tab { display: flex; justify-content: center; margin-top: 20px; }
       .tab button {
         padding: 12px 20px;
         border-radius: 10px;
@@ -74,24 +71,19 @@
         cursor: pointer;
         transition: all 0.3s;
       }
-      .tab button:hover {
-        background-color: #f0f0f0;
-      }
+      .tab button:hover { background-color: #f0f0f0; }
       .tab button.active {
         background-color: #007bff;
         color: #fff;
         font-weight: bold;
         transform: scale(1.1);
       }
-      .tab button:active {
-        background-color: #0056b3;
-        transform: scale(0.98);
-      }
+
       .content {
         padding: 20px;
         background-color: #fff;
         border-radius: 10px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         margin-top: 20px;
       }
       .schedule-table {
@@ -99,8 +91,7 @@
         border-collapse: collapse;
         margin-top: 20px;
       }
-      .schedule-table th,
-      .schedule-table td {
+      .schedule-table th, .schedule-table td {
         padding: 12px;
         border: 1px solid #ddd;
         text-align: center;
@@ -109,41 +100,19 @@
         background-color: #f1f1f1;
         font-weight: bold;
       }
-      .schedule-table td {
-        background-color: #fff;
-      }
-      /* スケジュール表示エリアには一度だけアニメーションを適用 */
-      #schedule-container {
-        animation: fadeInUp 0.8s ease-out;
-      }
-      .footer {
-        text-align: center;
-        margin-top: 30px;
-        font-size: 14px;
-        color: #777;
-      }
-      /* Navigation styles for schedule */
+      #schedule-container { animation: fadeInUp 0.8s ease-out; }
+      .footer { text-align: center; margin-top: 30px; font-size: 14px; color: #777; }
+
       #navigation {
         display: flex;
         justify-content: center;
         align-items: center;
         margin-top: 20px;
       }
-      #navigation button {
-        font-size: 20px;
-        padding: 10px;
-        margin: 0 20px;
-        cursor: pointer;
-      }
-      #displayed-day {
-        font-size: 18px;
-        font-weight: bold;
-      }
-      /* iframe 用コンテナ */
-      #settings-iframe-container {
-        margin-top: 30px;
-        text-align: center;
-      }
+      #navigation button { font-size: 20px; padding: 10px; margin: 0 20px; cursor: pointer; }
+      #displayed-day { font-size: 18px; font-weight: bold; }
+
+      #settings-iframe-container { margin-top: 30px; text-align: center; }
       #settings-iframe-container iframe {
         width: 100%;
         height: 600px;
@@ -153,48 +122,40 @@
     </style>
   </head>
   <body>
-    <!-- Fixed real-time clock at the top left -->
     <div id="current-datetime"></div>
     <div id="current-lunch"></div>
     <div class="container">
       <div class="header">
         <h1>時間割トラッカー</h1>
-        <p style="color: gray; font-size: small">V1.3.8</p>
+        <!-- バージョン表記 -->
+        <p id="app-version-label">ver1.3.8</p>
+        <!-- 更新通知エリア -->
+        <div id="update-notice">
+          <p>バージョンが古いです。更新をしてください</p>
+          <button id="update-button">更新</button>
+        </div>
         <p>※短縮日課はそのうち対応</p>
-        <p>
-          <!-- ID を追加 -->
-          <a href="#" id="settings-link">設定を変更</a>
-        </p>
-        <!-- A1の値を表示する場所 -->
+        <p><a href="#" id="settings-link">設定を変更</a></p>
         <p id="A1Value"><strong>取得中...</strong></p>
       </div>
-      <!-- タブは通常日課のみ表示 -->
+
       <div class="tab">
         <button class="tab-button active" data-target="normal">通常日課</button>
       </div>
+
       <div id="normal" class="content">
         <h2>通常日課</h2>
         <p>月曜日の朝に更新してください</p>
         <p id="normal-status"></p>
       </div>
+
       <div id="schedule-container">
-        <!-- ヘッダー部分をフレックスボックスで左右に配置 -->
-        <div
-          style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-          "
-        >
-          <!-- スケジュールタイトルにidを追加 -->
+        <div style="display: flex; justify-content: space-between; align-items: center;">
           <h2 id="schedule-title">今日の時間割</h2>
         </div>
         <table id="today-schedule" class="schedule-table">
           <thead>
-            <tr>
-              <th>時間</th>
-              <th>授業内容</th>
-            </tr>
+            <tr><th>時間</th><th>授業内容</th></tr>
           </thead>
           <tbody></tbody>
         </table>
@@ -204,61 +165,66 @@
           <button id="next-day">&#8594;</button>
         </div>
       </div>
-      <!-- ここに iframe を挿入 -->
-      <div id="settings-iframe-container"></div>
-      <div class="footer">
-        <p></p>
-      </div>
-    </div>
-    <script>
-      // --- パスワード設定部分 ---
-      const correctPassword = "1030"; // ←ここを任意のパスワードに変更
-      const originalUrl = "https://docs.google.com/spreadsheets/d/1hohrA09f_BWT3lh2owfHu3npx33PBEpDXA2bpAlZB6U/edit?usp=sharing";
 
-      document.getElementById("settings-link").addEventListener("click", function (e) {
+      <div id="settings-iframe-container"></div>
+      <div class="footer"></div>
+    </div>
+
+    <script>
+      // バージョン変数
+      const appVersion = "2.0.0";
+      document.getElementById("app-version-label").innerText = "ver " + appVersion;
+
+      // 設定 iframe & パスワード
+      const correctPassword = "1030";
+      const originalUrl = "https://docs.google.com/spreadsheets/d/1hohrA09f_BWT3lh2owfHu3npx33PBEpDXA2bpAlZB6U/edit?usp=sharing";
+      document.getElementById("settings-link").addEventListener("click", e => {
         e.preventDefault();
-        const input = prompt("パスワードを入力してください");
-        if (input === correctPassword) {
-          const container = document.getElementById("settings-iframe-container");
-          // 既にiframeがあれば追加しない
-          if (!container.querySelector("iframe")) {
+        if (prompt("パスワードを入力してください") === correctPassword) {
+          const c = document.getElementById("settings-iframe-container");
+          if (!c.querySelector("iframe")) {
             const iframe = document.createElement("iframe");
             iframe.src = originalUrl;
-            container.appendChild(iframe);
+            c.appendChild(iframe);
           }
         } else {
           alert("パスワードが違います");
-          window.location.reload();
+          location.reload();
         }
       });
 
-      // --- 以下、元のコード ---
+      // スプレッドシート取得 & バージョンチェック
       async function fetchSpreadsheetData() {
         const sheetId = "1hohrA09f_BWT3lh2owfHu3npx33PBEpDXA2bpAlZB6U";
         const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
-
         try {
-          const response = await fetch(url);
-          const text = await response.text();
+          const res = await fetch(url);
+          const text = await res.text();
           const jsonText = text.substring(47, text.length - 2);
-          const jsonData = JSON.parse(jsonText);
-          const A1Value = jsonData.table.rows[0].c[0].v;
+          const data = JSON.parse(jsonText);
 
-          const A1Element = document.getElementById("A1Value");
-          if (!A1Element) {
-            const newA1Element = document.createElement("p");
-            newA1Element.id = "A1Value";
-            newA1Element.innerHTML = "<strong>計算中...</strong> ";
-            document.querySelector(".header").appendChild(newA1Element);
+          // A1 表示
+          const A1 = data.table.rows[0]?.c[0]?.v || "";
+          document.getElementById("A1Value").innerHTML = `<strong>${A1}</strong>`;
+
+          // A2 取得 & チェック
+          const sheetVer = data.table.rows[1]?.c[0]?.v || "";
+          const notice = document.getElementById("update-notice");
+          const btn = document.getElementById("update-button");
+
+          if (sheetVer !== appVersion) {
+            notice.style.display = "block";
           } else {
-            A1Element.innerHTML = "<strong>　</strong>" + A1Value + "<strong>　</strong> ";
+            notice.style.display = "none";
           }
-        } catch (error) {
-          console.error("データ取得に失敗しました:", error);
+        } catch (err) {
+          console.error(err);
         }
       }
       setInterval(fetchSpreadsheetData, 1000);
+      document.getElementById("update-button").addEventListener("click", () => location.reload());
 
+      // 以下：時間割／時刻表示処理（前回と同じ）…
       const tables = {
         normal: [
           { period: "朝の会", start: "8:25", end: "8:35" },
@@ -271,232 +237,127 @@
           { period: "６校時", start: "14:25", end: "15:15" }
         ]
       };
-
       const weeklySchedule = {
-        月曜日: ["国語", "数学", "体育", "社会", "音美", "英語"],
-        火曜日: ["体育", "社会", "数学", "理科", "英語", "道徳"],
-        水曜日: ["技家", "技家", "理科", "国語", "学活", "なし"],
-        木曜日: ["国語", "数学", "社会", "英語", "音楽", "総合"],
-        金曜日: ["美術", "理科", "数学", "体育", "国語", "英語"]
+        月曜日: ["国語","数学","体育","社会","音美","英語"],
+        火曜日: ["体育","社会","数学","理科","英語","道徳"],
+        水曜日: ["技家","技家","理科","国語","学活","なし"],
+        木曜日: ["国語","数学","社会","英語","音楽","総合"],
+        金曜日: ["美術","理科","数学","体育","国語","英語"]
       };
-
-      const navDays = ["月曜日", "火曜日", "水曜日", "木曜日", "金曜日"];
-      let selectedDayIndex;
-      let manualMode = false;
-      {
-        const today = new Date().getDay();
-        if (today >= 1 && today <= 5) {
-          selectedDayIndex = today - 1;
-        } else {
-          selectedDayIndex = 0;
-        }
-      }
-
+      const navDays = ["月曜日","火曜日","水曜日","木曜日","金曜日"];
+      let selectedDayIndex, manualMode = false;
+      { const d = new Date().getDay(); selectedDayIndex = (d>=1 && d<=5)? d-1 : 0; }
       let currentScheduleType = "normal";
-
       function getAdjustedTime() {
-        const now = new Date();
-        now.setSeconds(now.getSeconds() + 0);
-        return now;
+        const n = new Date();
+        n.setSeconds(n.getSeconds() + 0);
+        return n;
       }
-
-      function parseTime(time) {
-        const [hours, minutes] = time.split(":").map(Number);
+      function parseTime(t) {
+        const [h,m] = t.split(":").map(Number);
         const now = getAdjustedTime();
-        return new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          now.getDate(),
-          hours,
-          minutes
-        );
+        return new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m);
       }
-
       function getDisplayedDay() {
-        if (manualMode) {
-          return navDays[selectedDayIndex];
-        } else {
-          const now = new Date();
-          const systemDay = now.getDay();
-          if (systemDay >= 1 && systemDay <= 5) {
-            return navDays[systemDay - 1];
-          } else {
-            return navDays[0];
-          }
-        }
+        if (manualMode) return navDays[selectedDayIndex];
+        const d = new Date().getDay();
+        return (d>=1 && d<=5)? navDays[d-1] : navDays[0];
       }
-
       function getTodayDayName() {
-        const now = new Date();
-        const systemDay = now.getDay();
-        if (systemDay >= 1 && systemDay <= 5) {
-          return navDays[systemDay - 1];
-        } else {
-          return navDays[0];
-        }
+        const d = new Date().getDay();
+        return (d>=1 && d<=5)? navDays[d-1] : navDays[0];
       }
-
       function updateTime() {
         const now = getAdjustedTime();
-        const currentPeriod = tables[currentScheduleType].find((period) => {
-          const periodStartTime = parseTime(period.start);
-          const periodEndTime = parseTime(period.end);
-          return now >= periodStartTime && now <= periodEndTime;
-        });
-        const statusElement = document.getElementById(
-          `${currentScheduleType}-status`
-        );
-        if (currentPeriod) {
-          const periodStartTime = parseTime(currentPeriod.start);
-          const periodEndTime = parseTime(currentPeriod.end);
-          const elapsedTime = now - periodStartTime;
-          const remainingTime = periodEndTime - now;
-          const minutesElapsed = Math.floor(elapsedTime / 60000);
-          const secondsElapsed = Math.floor((elapsedTime % 60000) / 1000);
-          const minutesRemaining = Math.floor(remainingTime / 60000);
-          const secondsRemaining = Math.floor((remainingTime % 60000) / 1000);
-          statusElement.innerHTML = `${currentPeriod.period} - 残り時間: ${minutesRemaining}分 ${secondsRemaining}秒 <br> 経過時間: ${minutesElapsed}分 ${secondsElapsed}秒`;
+        const cur = tables[currentScheduleType].find(p => now>=parseTime(p.start) && now<=parseTime(p.end));
+        const el = document.getElementById(`${currentScheduleType}-status`);
+        if (cur) {
+          const elapsed = now - parseTime(cur.start);
+          const rem = parseTime(cur.end) - now;
+          el.innerHTML = `${cur.period} - 残り時間: ${Math.floor(rem/60000)}分${Math.floor((rem%60000)/1000)}秒<br>経過時間: ${Math.floor(elapsed/60000)}分${Math.floor((elapsed%60000)/1000)}秒`;
         } else {
-          const nextPeriod = tables[currentScheduleType].find((period) => {
-            const periodStartTime = parseTime(period.start);
-            return now < periodStartTime;
-          });
-          if (nextPeriod) {
-            const nextPeriodStartTime = parseTime(nextPeriod.start);
-            const nextPeriodRemainingTime = nextPeriodStartTime - now;
-            const secondsRemainingForNext = Math.floor(
-              nextPeriodRemainingTime / 1000
-            );
-            const minutesRemainingForNext = Math.floor(
-              secondsRemainingForNext / 60
-            );
-            const secondsRemaining = secondsRemainingForNext % 60;
-            statusElement.innerHTML = `開始まで残り ${minutesRemainingForNext}分 ${secondsRemaining}秒`;
+          const next = tables[currentScheduleType].find(p => now < parseTime(p.start));
+          if (next) {
+            const rem = parseTime(next.start) - now;
+            el.innerHTML = `開始まで残り ${Math.floor(rem/60000)}分${Math.floor((rem%60000)/1000)}秒`;
           }
         }
       }
-
       function updateTodaySchedule() {
-        let dayName = getDisplayedDay();
-        const scheduleTitle = document.getElementById("schedule-title");
-        if (scheduleTitle) {
-          if (dayName === getTodayDayName()) {
-            scheduleTitle.innerText = "今日の時間割";
-          } else {
-            scheduleTitle.innerText = dayName + "の時間割";
-          }
-        }
-
-        const schedule = weeklySchedule[dayName];
-        const tbody = document
-          .getElementById("today-schedule")
-          .getElementsByTagName("tbody")[0];
+        const day = getDisplayedDay();
+        const title = document.getElementById("schedule-title");
+        title.innerText = (day === getTodayDayName())? "今日の時間割" : `${day}の時間割`;
+        const tbody = document.querySelector("#today-schedule tbody");
         tbody.innerHTML = "";
-        schedule.forEach((period, index) => {
-          const row = document.createElement("tr");
-          row.innerHTML = `<td>${index + 1}時間目</td><td>${period}</td>`;
-          tbody.appendChild(row);
+        weeklySchedule[day].forEach((s,i) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td>${i+1}時間目</td><td>${s}</td>`;
+          tbody.appendChild(tr);
         });
-        const displayedDay = document.getElementById("displayed-day");
-        if (displayedDay) {
-          displayedDay.textContent = dayName;
-        }
+        document.getElementById("displayed-day").textContent = day;
       }
-
-      let lunchVisible = true;
       const lunchSchedule = {
         月曜日: "行事なし 清掃あり",
         火曜日: "行事なし 清掃なし",
-        水曜日: "行事なし 清掃あり",
+        水ednesday: "行事なし 清掃あり",
         木曜日: "行事なし 清掃なし",
         金曜日: "行事なし 清掃あり"
       };
-
+      let lunchVisible = true;
       function updateLunchDisplay() {
-        let displayedDay = getDisplayedDay();
-        let todayDay = getTodayDayName();
-        const lunch = lunchSchedule[displayedDay] || "未登録";
-        const lunchElement = document.getElementById("current-lunch");
-        if (lunchElement) {
-          if (!lunchVisible) {
-            lunchElement.innerText = "行事・清掃 (タップで表示)";
-            return;
-          }
-          if (displayedDay === todayDay) {
-            lunchElement.innerHTML = "今日の行事・清掃: " + lunch + "(タップで閉じる)";
-          } else {
-            lunchElement.innerHTML =
-              displayedDay + "の行事・清掃: " + lunch + "(タップで閉じる)";
-          }
+        const d = getDisplayedDay();
+        const today = getTodayDayName();
+        const txt = lunchSchedule[d] || "未登録";
+        const el = document.getElementById("current-lunch");
+        if (!lunchVisible) {
+          el.innerText = "行事・清掃 (タップで表示)";
+        } else {
+          el.innerHTML = (d === today? "今日の行事・清掃: " : `${d}の行事・清掃: `) + txt + "(タップで閉じる)";
         }
       }
-
-      function changeTab(tab) {
-        document
-          .querySelectorAll(".tab-button")
-          .forEach((button) => button.classList.remove("active"));
-        tab.classList.add("active");
-        currentScheduleType = tab.getAttribute("data-target");
+      function changeTab(btn) {
+        document.querySelectorAll(".tab-button").forEach(b=>b.classList.remove("active"));
+        btn.classList.add("active");
+        currentScheduleType = btn.getAttribute("data-target");
         updateTime();
       }
-
-      document.querySelectorAll(".tab-button").forEach((button) => {
-        button.addEventListener("click", () => changeTab(button));
+      document.querySelectorAll(".tab-button").forEach(b=>b.addEventListener("click", ()=>changeTab(b)));
+      document.getElementById("prev-day").addEventListener("click", ()=>{
+        manualMode = true;
+        selectedDayIndex = (selectedDayIndex + navDays.length - 1) % navDays.length;
+        updateTodaySchedule();
+        updateLunchDisplay();
       });
+      document.getElementById("next-day").addEventListener("click", ()=>{
+        manualMode = true;
+        selectedDayIndex = (selectedDayIndex + 1) % navDays.length;
+        updateTodaySchedule();
+        updateLunchDisplay();
+      });
+      function updateDateTime() {
+        const n = new Date();
+        const h = String(n.getHours()).padStart(2,"0"),
+              m = String(n.getMinutes()).padStart(2,"0"),
+              s = String(n.getSeconds()).padStart(2,"0");
+        document.getElementById("current-datetime").innerText = `${h}:${m}:${s}`;
+      }
+      document.getElementById("current-lunch").addEventListener("click", ()=>{
+        lunchVisible = !lunchVisible;
+        updateLunchDisplay();
+      });
+      function updateLunchPosition() {
+        const t = document.getElementById("current-datetime"),
+              l = document.getElementById("current-lunch");
+        if (t && l) l.style.left = t.offsetWidth + "px";
+      }
 
+      setInterval(updateDateTime, 1000);
       setInterval(updateTime, 1000);
       setInterval(updateTodaySchedule, 1000);
       setInterval(updateLunchDisplay, 1000);
-
-      document.getElementById("prev-day").addEventListener("click", () => {
-        manualMode = true;
-        selectedDayIndex--;
-        if (selectedDayIndex < 0) {
-          selectedDayIndex = navDays.length - 1;
-        }
-        updateTodaySchedule();
-        updateLunchDisplay();
-      });
-
-      document.getElementById("next-day").addEventListener("click", () => {
-        manualMode = true;
-        selectedDayIndex++;
-        if (selectedDayIndex >= navDays.length) {
-          selectedDayIndex = 0;
-        }
-        updateTodaySchedule();
-        updateLunchDisplay();
-      });
-
-      function updateDateTime() {
-        const now = new Date();
-        const hours = String(now.getHours()).padStart(2, "0");
-        const minutes = String(now.getMinutes()).padStart(2, "0");
-        const seconds = String(now.getSeconds()).padStart(2, "0");
-        const datetimeStr = `${hours}:${minutes}:${seconds}`;
-        const dtElement = document.getElementById("current-datetime");
-        if (dtElement) {
-          dtElement.innerText = datetimeStr;
-        }
-      }
-      setInterval(updateDateTime, 1000);
-      updateDateTime();
-
-      document
-        .getElementById("current-lunch")
-        .addEventListener("click", function () {
-          lunchVisible = !lunchVisible;
-          updateLunchDisplay();
-        });
-
-      function updateLunchPosition() {
-        const timeElem = document.getElementById("current-datetime");
-        const lunchElem = document.getElementById("current-lunch");
-        if (timeElem && lunchElem) {
-          lunchElem.style.left = timeElem.offsetWidth + "px";
-        }
-      }
       setInterval(updateLunchPosition, 1000);
+      updateDateTime();
+      fetchSpreadsheetData();
     </script>
   </body>
 </html>
