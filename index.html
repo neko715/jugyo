@@ -66,6 +66,11 @@
       }
       #update-button:hover { opacity: 0.9; }
 
+      /* 「設定を変更」リンクを非表示に */
+      #settings-link {
+        display: none;
+      }
+
       .tab { display: flex; justify-content: center; margin-top: 20px; }
       .tab button {
         padding: 12px 20px;
@@ -217,6 +222,7 @@
           <button id="update-button">更新</button>
         </div>
         <p>※短縮日課はそのうち対応</p>
+        <!-- 「設定を変更」リンクを非表示に -->
         <p><a href="#" id="settings-link">設定を変更</a></p>
         <p id="A1Value"><strong>取得中...</strong></p>
       </div>
@@ -275,62 +281,64 @@
 
     <script>
       // バージョン変数
-      const appVersion = "2.1.1";
+      const appVersion = "2.1.2";
       document.getElementById("app-version-label").innerText = "ver " + appVersion;
 
-      // 設定 iframe & パスワード
+      // 設定 iframe & パスワード（リンクはキーボード入力で開くため非表示化）
       const correctPassword = "1030";
       const originalUrl = "https://docs.google.com/spreadsheets/d/1hohrA09f_BWT3lh2owfHu3npx33PBEpDXA2bpAlZB6U/edit?usp=sharing";
       document.getElementById("settings-link").addEventListener("click", e => {
         e.preventDefault();
-        if (prompt("パスワードを入力してください") === correctPassword) {
-          const c = document.getElementById("settings-iframe-container");
-          if (!c.querySelector("iframe")) {
-            const iframe = document.createElement("iframe");
-            iframe.src = originalUrl;
-            c.appendChild(iframe);
-          }
-        } else {
-          alert("パスワードが違います");
-          location.reload();
-        }
+        // 直接クリックでは何もしない（hidden 要素なので実質不要）
       });
 
+      // キーボードで「settei」と入力されたら別タブでリンクを開く
+      (function() {
+        let buffer = "";
+        document.addEventListener("keydown", e => {
+          buffer += e.key;
+          if (buffer.endsWith("settei")) {
+            window.open(originalUrl, "_blank");
+            buffer = ""; // リセット
+          }
+          if (buffer.length > 10) {
+            buffer = buffer.slice(-10);
+          }
+        });
+      })();
+
       // スプレッドシート取得 & バージョンチェック
-async function fetchSpreadsheetData() {
-  const sheetId = "1hohrA09f_BWT3lh2owfHu3npx33PBEpDXA2bpAlZB6U";
-  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
-  try {
-    const res = await fetch(url);
-    const text = await res.text();
-    const jsonText = text.substring(47, text.length - 2);
-    const data = JSON.parse(jsonText);
+      async function fetchSpreadsheetData() {
+        const sheetId = "1hohrA09f_BWT3lh2owfHu3npx33PBEpDXA2bpAlZB6U";
+        const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
+        try {
+          const res = await fetch(url);
+          const text = await res.text();
+          const jsonText = text.substring(47, text.length - 2);
+          const data = JSON.parse(jsonText);
 
-    // A1 表示
-    const A1 = data.table.rows[0]?.c[0]?.v || "";
-    document.getElementById("A1Value").innerHTML = `<strong>${A1}</strong>`;
+          // A1 表示
+          const A1 = data.table.rows[0]?.c[0]?.v || "";
+          document.getElementById("A1Value").innerHTML = `<strong>${A1}</strong>`;
 
-    // A2 取得 & チェック（trimで不要な空白を排除）
-    const sheetVer = (data.table.rows[1]?.c[0]?.v || "").trim();
-    const currentVer = appVersion.trim();  // 念のため
-    const notice = document.getElementById("update-notice");
+          // A2 取得 & チェック（trimで不要な空白を排除）
+          const sheetVer = (data.table.rows[1]?.c[0]?.v || "").trim();
+          const currentVer = appVersion.trim();  // 念のため
+          const notice = document.getElementById("update-notice");
 
-    if (sheetVer !== currentVer) {
-      notice.style.display = "block";
-    } else {
-      notice.style.display = "none";
-    }
-  } catch (err) {
-    console.error("スプレッドシートの取得に失敗:", err);
-  }
-}
+          if (sheetVer !== currentVer) {
+            notice.style.display = "block";
+          } else {
+            notice.style.display = "none";
+          }
+        } catch (err) {
+          console.error("スプレッドシートの取得に失敗:", err);
+        }
+      }
 
-// 最初に即時実行
-fetchSpreadsheetData();
-
-// 間隔を3秒に（負荷軽減 & キャッシュ対策）
-setInterval(fetchSpreadsheetData, 3000);
-
+      // 最初に即時実行
+      fetchSpreadsheetData();
+      // 更新間隔
       setInterval(fetchSpreadsheetData, 1000);
       document.getElementById("update-button").addEventListener("click", () => location.reload());
 
@@ -421,23 +429,23 @@ setInterval(fetchSpreadsheetData, 3000);
         document.getElementById("displayed-day").textContent = day;
       }
       function updateLunchDisplay() {
-  const d = getDisplayedDay();
-  const today = getTodayDayName();
-  const status = {
-    月曜日: "清掃があります",
-    火曜日: "清掃はありません",
-    水曜日: "清掃があります",
-    木曜日: "清掃はありません",
-    金曜日: "清掃があります"
-  }[d] || "清掃情報は未登録です";
+        const d = getDisplayedDay();
+        const today = getTodayDayName();
+        const status = {
+          月曜日: "清掃があります",
+          火曜日: "清掃はありません",
+          水曜日: "清掃があります",
+          木曜日: "清掃はありません",
+          金曜日: "清掃があります"
+        }[d] || "清掃情報は未登録です";
 
-  const el = document.getElementById("current-lunch");
-  if (d === today) {
-    el.innerHTML = `今日は${status}`;
-  } else {
-    el.innerHTML = `${d}は${status}`;
-  }
-}
+        const el = document.getElementById("current-lunch");
+        if (d === today) {
+          el.innerHTML = `今日は${status}`;
+        } else {
+          el.innerHTML = `${d}は${status}`;
+        }
+      }
 
       function changeTab(btn) {
         document.querySelectorAll(".tab-button").forEach(b=>b.classList.remove("active"));
@@ -474,7 +482,6 @@ setInterval(fetchSpreadsheetData, 3000);
       setInterval(updateTodaySchedule, 1000);
       setInterval(updateLunchDisplay, 1000);
       updateDateTime();
-      fetchSpreadsheetData();
 
       // 使い方モーダル制御
       const helpButton = document.getElementById("help-button");
